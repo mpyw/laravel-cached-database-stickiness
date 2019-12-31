@@ -4,7 +4,7 @@ namespace Mpyw\LaravelCachedDatabaseStickiness\JobInitializers;
 
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Queue\Events\JobProcessing;
-use Mpyw\LaravelCachedDatabaseStickiness\Jobs\ShouldAssumeFresh;
+use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\Concerns\DetectsInterfaces;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessManager;
 
 /**
@@ -14,6 +14,8 @@ use Mpyw\LaravelCachedDatabaseStickiness\StickinessManager;
  */
 class AlwaysModifiedInitializer implements JobInitializerInterface
 {
+    use DetectsInterfaces;
+
     /**
      * @var \Mpyw\LaravelCachedDatabaseStickiness\StickinessManager
      */
@@ -41,9 +43,7 @@ class AlwaysModifiedInitializer implements JobInitializerInterface
      */
     public function initializeStickinessState(JobProcessing $event): void
     {
-        $command = (string)filter_var($event->job->payload()['data']['commandName'] ?? null);
-
-        if (is_subclass_of($command, ShouldAssumeFresh::class)) {
+        if ($this->shouldAssumeFresh($event->job)) {
             foreach ($this->db->getConnections() as $connection) {
                 $this->stickiness->setRecordsFresh($connection);
             }
