@@ -23,6 +23,7 @@ $rules = [
     'no_null_property_initialization' => true,
     'no_short_echo_tag' => false,
     'no_superfluous_elseif' => true,
+    'no_superfluous_phpdoc_tags' => false,
     'no_unneeded_curly_braces' => true,
     'no_unneeded_final_method' => true,
     'no_useless_else' => true,
