@@ -8,9 +8,10 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Queue\Events\JobProcessing;
 use Mockery;
 use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\AlwaysModifiedInitializer;
-use Mpyw\LaravelCachedDatabaseStickiness\Jobs\ShouldAssumeFresh;
-use Mpyw\LaravelCachedDatabaseStickiness\Jobs\ShouldAssumeModified;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessManager;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\FreshJob;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\GeneralJob;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\ModifiedJob;
 use Orchestra\Testbench\TestCase;
 
 class AlwaysModifiedInitializerTest extends TestCase
@@ -53,12 +54,13 @@ class AlwaysModifiedInitializerTest extends TestCase
 
     public function testGeneralJob(): void
     {
-        $job = new class() {
-        };
+        $job = new GeneralJob();
 
         $this->job->shouldReceive('payload')->once()->andReturn([
+            'job' => 'Illuminate\Queue\CallQueuedHandler@call',
             'data' => [
                 'commandName' => get_class($job),
+                'command' => serialize($job),
             ],
         ]);
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
@@ -69,12 +71,13 @@ class AlwaysModifiedInitializerTest extends TestCase
 
     public function testFreshJob(): void
     {
-        $job = new class() implements ShouldAssumeFresh {
-        };
+        $job = new FreshJob();
 
         $this->job->shouldReceive('payload')->once()->andReturn([
+            'job' => 'Illuminate\Queue\CallQueuedHandler@call',
             'data' => [
                 'commandName' => get_class($job),
+                'command' => serialize($job),
             ],
         ]);
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
@@ -85,12 +88,13 @@ class AlwaysModifiedInitializerTest extends TestCase
 
     public function testModifiedJob(): void
     {
-        $job = new class() implements ShouldAssumeModified {
-        };
+        $job = new ModifiedJob();
 
         $this->job->shouldReceive('payload')->once()->andReturn([
+            'job' => 'Illuminate\Queue\CallQueuedHandler@call',
             'data' => [
                 'commandName' => get_class($job),
+                'command' => serialize($job),
             ],
         ]);
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
@@ -102,8 +106,10 @@ class AlwaysModifiedInitializerTest extends TestCase
     public function testBrokenCommandNameJob(): void
     {
         $this->job->shouldReceive('payload')->once()->andReturn([
+            'job' => 'Illuminate\Queue\CallQueuedHandler@call',
             'data' => [
                 'commandName' => ['foo'],
+                'command' => [],
             ],
         ]);
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
@@ -115,6 +121,7 @@ class AlwaysModifiedInitializerTest extends TestCase
     public function testMissingCommandNameJob(): void
     {
         $this->job->shouldReceive('payload')->once()->andReturn([
+            'job' => 'Illuminate\Queue\CallQueuedHandler@call',
             'data' => [],
         ]);
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);

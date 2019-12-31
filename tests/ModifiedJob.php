@@ -1,6 +1,6 @@
 <?php
 
-namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Feature;
+namespace Mpyw\LaravelCachedDatabaseStickiness\Tests;
 
 use Mpyw\LaravelCachedDatabaseStickiness\Jobs\ShouldAssumeModified;
 
