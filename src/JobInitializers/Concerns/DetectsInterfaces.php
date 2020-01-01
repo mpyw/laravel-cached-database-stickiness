@@ -10,7 +10,6 @@ use Illuminate\Queue\CallQueuedHandler;
 use Illuminate\Support\Str;
 use Mpyw\LaravelCachedDatabaseStickiness\ShouldAssumeFresh;
 use Mpyw\LaravelCachedDatabaseStickiness\ShouldAssumeModified;
-use Throwable;
 
 trait DetectsInterfaces
 {
@@ -108,10 +107,12 @@ trait DetectsInterfaces
             return null;
         }
 
-        try {
-            return unserialize($payload['data']['command']);
-        } catch (Throwable $_) {
-            return null;
-        }
+        set_error_handler(static function () {
+            return true;
+        });
+        $object = unserialize($payload['data']['command']);
+        restore_error_handler();
+
+        return $object ?: null;
     }
 }
