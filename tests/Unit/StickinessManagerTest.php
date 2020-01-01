@@ -7,7 +7,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Queue\Events\JobProcessing;
 use Mockery;
-use Mpyw\LaravelCachedDatabaseStickiness\Events\RecordsHaveBeenModified;
+use Mpyw\LaravelCachedDatabaseStickiness\Events\ConnectionCreated;
 use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\JobInitializerInterface;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessManager;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessResolvers\StickinessResolverInterface;
@@ -63,24 +63,6 @@ class StickinessManagerTest extends TestCase
         $property = new ReflectionProperty($connection, 'recordsModified');
         $property->setAccessible(true);
         $property->setValue($connection, $bool);
-    }
-
-    public function testOnJobProcessing(): void
-    {
-        $event = Mockery::mock(JobProcessing::class);
-        $this->job->shouldReceive('initializeStickinessState')->once()->with($event);
-
-        $manager = new StickinessManager($this->container);
-        $manager->onJobProcessing($event);
-    }
-
-    public function testOnRecordsHaveBeenModified(): void
-    {
-        $connection = Mockery::mock(ConnectionInterface::class);
-        $this->resolver->shouldReceive('markAsModified')->once()->with($connection);
-
-        $manager = new StickinessManager($this->container);
-        $manager->onRecordsHaveBeenModified(new RecordsHaveBeenModified($connection));
     }
 
     public function testSetRecordsModified(): void
@@ -165,12 +147,25 @@ class StickinessManagerTest extends TestCase
         $this->assertTrue($manager->isRecentlyModified($connection));
     }
 
-    public function testInitializeStickinessState(): void
+    public function testInitializeStickinessStateOnResolvedConnections(): void
     {
         $event = Mockery::mock(JobProcessing::class);
-        $this->job->shouldReceive('initializeStickinessState')->once()->with($event);
+
+        $this->job->shouldReceive('initializeOnResolvedConnections')->once()->with($event);
 
         $manager = new StickinessManager($this->container);
         $manager->initializeStickinessState($event);
+    }
+
+    public function testInitializeStickinessStateOnNewConnection(): void
+    {
+        $jobProcessingEvent = Mockery::mock(JobProcessing::class);
+        $connectionCreatedEvent = Mockery::mock(ConnectionCreated::class);
+
+        $this->job->shouldReceive('initializeOnResolvedConnections')->once()->with($jobProcessingEvent);
+        $this->job->shouldReceive('initializeOnNewConnection')->once()->with($jobProcessingEvent, $connectionCreatedEvent);
+
+        $manager = new StickinessManager($this->container);
+        $manager->initializeStickinessState($jobProcessingEvent, $connectionCreatedEvent);
     }
 }
