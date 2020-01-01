@@ -35,16 +35,23 @@ trait DetectsInterfaces
      */
     public function shouldAssumeModified(Job $job): ?bool
     {
-        $payload = $job->payload();
+        return $this->shouldAssumeJobCallerModified($job->payload());
+    }
 
-        $jobHandlerClass = Str::parseCallback((string)filter_var($payload['job'] ?? ''))[0];
+    /**
+     * @param  array     $payload
+     * @return null|bool
+     */
+    protected function shouldAssumeJobCallerModified(array $payload): ?bool
+    {
+        $job = Str::parseCallback((string)filter_var($payload['job'] ?? ''))[0];
 
-        if (null !== $result = $this->detectInterface($jobHandlerClass)) {
+        if (null !== $result = $this->detectInterface($job)) {
             return $result;
         }
 
-        return is_a($jobHandlerClass, CallQueuedHandler::class, true)
-            ? $this->shouldAssumeCallQueuedHandlerAsModified($payload)
+        return is_a($job, CallQueuedHandler::class, true)
+            ? $this->shouldAssumeJobModified($payload)
             : null;
     }
 
@@ -52,31 +59,21 @@ trait DetectsInterfaces
      * @param  array     $payload
      * @return null|bool
      */
-    protected function shouldAssumeCallQueuedHandlerAsModified(array $payload): ?bool
+    protected function shouldAssumeJobModified(array $payload): ?bool
     {
-        $callQueuedHandlerCommandClass = Str::parseCallback((string)filter_var($payload['data']['commandName'] ?? ''))[0];
+        $commandName = Str::parseCallback((string)filter_var($payload['data']['commandName'] ?? ''))[0];
 
-        if (null !== $result = $this->detectInterface($callQueuedHandlerCommandClass)) {
+        if (null !== $result = $this->detectInterface($commandName)) {
             return $result;
         }
 
-        return $this->shouldAssumeCallQueuedHandlerCommandPayloadAsModified($callQueuedHandlerCommandClass, $payload);
-    }
-
-    /**
-     * @param  string    $callQueuedHandlerCommandClass
-     * @param  array     $payload
-     * @return null|bool
-     */
-    protected function shouldAssumeCallQueuedHandlerCommandPayloadAsModified(string $callQueuedHandlerCommandClass, array $payload): ?bool
-    {
-        if (is_a($callQueuedHandlerCommandClass, CallQueuedListener::class, true)) {
+        if (is_a($commandName, CallQueuedListener::class, true)) {
             return $this->detectInterface($this->unserializePayload($payload)->class ?? null);
         }
-        if (is_a($callQueuedHandlerCommandClass, SendQueuedNotifications::class, true)) {
+        if (is_a($commandName, SendQueuedNotifications::class, true)) {
             return $this->detectInterface($this->unserializePayload($payload)->notification ?? null);
         }
-        if (is_a($callQueuedHandlerCommandClass, SendQueuedMailable::class, true)) {
+        if (is_a($commandName, SendQueuedMailable::class, true)) {
             return $this->detectInterface($this->unserializePayload($payload)->mailable ?? null);
         }
 
@@ -84,18 +81,18 @@ trait DetectsInterfaces
     }
 
     /**
-     * @param  mixed     $command
+     * @param  mixed     $class
      * @return null|bool
      */
-    protected function detectInterface($command): ?bool
+    protected function detectInterface($class): ?bool
     {
-        if (!is_object($command) && !is_string($command)) {
+        if (!is_object($class) && !is_string($class)) {
             return null;
         }
-        if (is_subclass_of($command, ShouldAssumeModified::class)) {
+        if (is_subclass_of($class, ShouldAssumeModified::class)) {
             return true;
         }
-        if (is_subclass_of($command, ShouldAssumeFresh::class)) {
+        if (is_subclass_of($class, ShouldAssumeFresh::class)) {
             return false;
         }
         return null;

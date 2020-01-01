@@ -41,34 +41,34 @@ class DetectsInterfacesTest extends TestCase
         };
     }
 
-    public function testCallFreshQueuedHandler(): void
+    public function testJobCallersFreshCaller(): void
     {
         $this->job->shouldReceive('payload')->once()->andReturn([
-            'job' => 'Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\QueueHandlers\FreshCallQueuedHandler@call',
+            'job' => 'Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\JobCallers\FreshCaller@call',
         ]);
 
         $this->assertTrue($this->trait->shouldAssumeFresh($this->job));
     }
 
-    public function testCallModifiedQueuedHandler(): void
+    public function testJobCallersModifiedCaller(): void
     {
         $this->job->shouldReceive('payload')->once()->andReturn([
-            'job' => 'Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\QueueHandlers\ModifiedCallQueuedHandler@call',
+            'job' => 'Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\JobCallers\ModifiedCaller@call',
         ]);
 
         $this->assertTrue($this->trait->shouldAssumeModified($this->job));
     }
 
-    public function testGeneralQueuedHandler(): void
+    public function testJobCallersGeneralCaller(): void
     {
         $this->job->shouldReceive('payload')->once()->andReturn([
-            'job' => 'Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\QueueHandlers\GeneralCallQueuedHandler@call',
+            'job' => 'Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\JobCallers\GeneralCaller@call',
         ]);
 
         $this->assertNull($this->trait->shouldAssumeModified($this->job));
     }
 
-    public function testBrokenQueuedHandler(): void
+    public function testJobCallerBrokenCaller(): void
     {
         $this->job->shouldReceive('payload')->once()->andReturn([
             'job' => [],
@@ -77,7 +77,7 @@ class DetectsInterfacesTest extends TestCase
         $this->assertNull($this->trait->shouldAssumeModified($this->job));
     }
 
-    public function testMissingQueuedHandler(): void
+    public function testJobCallerMissingCaller(): void
     {
         $this->job->shouldReceive('payload')->once()->andReturn([
         ]);
