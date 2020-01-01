@@ -115,7 +115,7 @@ class StickinessManager
      */
     public function resolveRecordsModified(ConnectionInterface $connection): void
     {
-        if ($this->isRecentlyModified($connection)) {
+        if (!$this->getRecordsModified($connection) && $this->isRecentlyModified($connection)) {
             $this->setRecordsModified($connection);
         }
     }

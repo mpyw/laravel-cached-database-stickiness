@@ -131,6 +131,20 @@ class StickinessManagerTest extends TestCase
         $this->assertTrue($this->getRecordsModified($connection));
     }
 
+    public function testResolveRecordsNotModified(): void
+    {
+        $connection = Mockery::mock(Connection::class);
+
+        $this->resolver->shouldNotReceive('isRecentlyModified');
+
+        $this->setRecordsModified($connection, true);
+
+        $manager = new StickinessManager($this->container);
+        $manager->resolveRecordsModified($connection);
+
+        $this->assertTrue($this->getRecordsModified($connection));
+    }
+
     public function testMarkAsModified(): void
     {
         $connection = Mockery::mock(Connection::class);
