@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Mpyw\LaravelCachedDatabaseStickiness\ConnectionServiceProvider;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessServiceProvider;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs\ConnectionResolvableJob;
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs\FreshJob;
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs\GeneralJob;
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs\ModifiedJob;
@@ -123,6 +124,13 @@ class InitializingTest extends TestCase
         $this->assertFalse($this->getRecordsModifiedViaReflection());
 
         Mail::send(new ModifiedMailable());
+
+        $this->assertTrue($this->getRecordsModifiedViaReflection());
+    }
+
+    public function testUnresolvedConnectionShouldBeInitializedAfterJobProcessingDispatched(): void
+    {
+        Bus::dispatch(new ConnectionResolvableJob());
 
         $this->assertTrue($this->getRecordsModifiedViaReflection());
     }

@@ -3,6 +3,9 @@
 namespace Mpyw\LaravelCachedDatabaseStickiness;
 
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Queue\Events\JobExceptionOccurred;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\ServiceProvider;
 use Mpyw\LaravelCachedDatabaseStickiness\Events\ConnectionCreated;
@@ -17,14 +20,17 @@ class StickinessServiceProvider extends ServiceProvider
     /**
      * {@inheritdoc}
      *
-     * @param \Illuminate\Contracts\Events\Dispatcher                 $events
-     * @param \Mpyw\LaravelCachedDatabaseStickiness\StickinessManager $stickiness
+     * @param \Illuminate\Contracts\Events\Dispatcher                       $events
+     * @param \Mpyw\LaravelCachedDatabaseStickiness\StickinessEventListener $listener
      */
-    public function boot(Dispatcher $events, StickinessManager $stickiness): void
+    public function boot(Dispatcher $events, StickinessEventListener $listener): void
     {
-        $events->listen(ConnectionCreated::class, [$stickiness, 'onConnectionCreated']);
-        $events->listen(JobProcessing::class, [$stickiness, 'onJobProcessing']);
-        $events->listen(RecordsHaveBeenModified::class, [$stickiness, 'onRecordsHaveBeenModified']);
+        $events->listen(JobProcessing::class, [$listener, 'onJobProcessing']);
+        $events->listen(JobProcessed::class, [$listener, 'onJobProcessed']);
+        $events->listen(JobExceptionOccurred::class, [$listener, 'onJobExceptionOccurred']);
+        $events->listen(JobFailed::class, [$listener, 'onJobFailed']);
+        $events->listen(ConnectionCreated::class, [$listener, 'onConnectionCreated']);
+        $events->listen(RecordsHaveBeenModified::class, [$listener, 'onRecordsHaveBeenModified']);
     }
 
     /**
@@ -33,6 +39,7 @@ class StickinessServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(StickinessManager::class);
+        $this->app->singleton(StickinessEventListener::class);
         $this->app->singleton('db.factory', ConnectionFactory::class);
 
         $this->app->bind(StickinessResolverInterface::class, IpBasedResolver::class);

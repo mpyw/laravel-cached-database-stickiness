@@ -4,6 +4,7 @@ namespace Mpyw\LaravelCachedDatabaseStickiness\JobInitializers;
 
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Queue\Events\JobProcessing;
+use Mpyw\LaravelCachedDatabaseStickiness\Events\ConnectionCreated;
 use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\Concerns\DetectsInterfaces;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessManager;
 
@@ -41,7 +42,7 @@ class AlwaysModifiedInitializer implements JobInitializerInterface
     /**
      * {@inheritdoc}
      */
-    public function initializeStickinessState(JobProcessing $event): void
+    public function initializeOnResolvedConnections(JobProcessing $event): void
     {
         if ($this->shouldAssumeFresh($event->job)) {
             foreach ($this->db->getConnections() as $connection) {
@@ -53,5 +54,15 @@ class AlwaysModifiedInitializer implements JobInitializerInterface
         foreach ($this->db->getConnections() as $connection) {
             $this->stickiness->setRecordsModified($connection);
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function initializeOnNewConnection(JobProcessing $jobProcessingEvent, ConnectionCreated $connectionCreatedEvent): void
+    {
+        $this->shouldAssumeFresh($jobProcessingEvent->job)
+            ? $this->stickiness->setRecordsFresh($connectionCreatedEvent->connection)
+            : $this->stickiness->setRecordsModified($connectionCreatedEvent->connection);
     }
 }
