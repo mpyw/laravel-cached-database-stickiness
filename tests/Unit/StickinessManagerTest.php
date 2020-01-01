@@ -95,6 +95,16 @@ class StickinessManagerTest extends TestCase
         $this->assertTrue($this->getRecordsModified($connection));
     }
 
+    public function testGetRecordsModified(): void
+    {
+        $connection = Mockery::mock(Connection::class);
+
+        $this->setRecordsModified($connection, true);
+
+        $manager = new StickinessManager($this->container);
+        $this->assertTrue($manager->getRecordsModified($connection));
+    }
+
     public function testSetRecordsFresh(): void
     {
         $connection = Mockery::mock(Connection::class);

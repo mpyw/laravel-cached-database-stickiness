@@ -82,6 +82,22 @@ class StickinessManager
         $property->setValue($connection, $bool);
     }
 
+    /** @noinspection PhpDocMissingThrowsInspection */
+
+    /**
+     * Get DB::$recordsModified state on $connection.
+     *
+     * @param  \Illuminate\Database\ConnectionInterface $connection
+     * @return bool
+     */
+    public function getRecordsModified(ConnectionInterface $connection): bool
+    {
+        /* @noinspection PhpUnhandledExceptionInspection */
+        $property = new ReflectionProperty($connection, 'recordsModified');
+        $property->setAccessible(true);
+        return (bool)$property->getValue($connection);
+    }
+
     /**
      * Set DB::$recordsModified state to false on $connection.
      *
