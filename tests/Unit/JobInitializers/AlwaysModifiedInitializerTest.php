@@ -8,8 +8,6 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Queue\Events\JobProcessing;
 use Mockery;
 use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\AlwaysModifiedInitializer;
-use Mpyw\LaravelCachedDatabaseStickiness\Jobs\ShouldAssumeFresh;
-use Mpyw\LaravelCachedDatabaseStickiness\Jobs\ShouldAssumeModified;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessManager;
 use Orchestra\Testbench\TestCase;
 
@@ -40,6 +38,11 @@ class AlwaysModifiedInitializerTest extends TestCase
      */
     protected $job;
 
+    /**
+     * @var \Mockery\LegacyMockInterface|\Mockery\MockInterface|\Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\AlwaysModifiedInitializer
+     */
+    protected $initializer;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -49,77 +52,37 @@ class AlwaysModifiedInitializerTest extends TestCase
         $this->connection = Mockery::mock(ConnectionInterface::class);
         $this->job = Mockery::mock(Job::class);
         $this->event = new JobProcessing('foo', $this->job);
-    }
 
-    public function testGeneralJob(): void
-    {
-        $job = new class() {
-        };
-
-        $this->job->shouldReceive('payload')->once()->andReturn([
-            'data' => [
-                'commandName' => get_class($job),
-            ],
+        $this->initializer = Mockery::mock(AlwaysModifiedInitializer::class . '[shouldAssumeModified,shouldAssumeFresh]', [
+            $this->stickiness,
+            $this->db,
         ]);
-        $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
-        $this->stickiness->shouldReceive('setRecordsModified')->once()->with($this->connection);
-
-        (new AlwaysModifiedInitializer($this->stickiness, $this->db))->initializeStickinessState($this->event);
     }
 
     public function testFreshJob(): void
     {
-        $job = new class() implements ShouldAssumeFresh {
-        };
-
-        $this->job->shouldReceive('payload')->once()->andReturn([
-            'data' => [
-                'commandName' => get_class($job),
-            ],
-        ]);
+        $this->initializer->shouldReceive('shouldAssumeFresh')->once()->with($this->job)->andReturnTrue();
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
         $this->stickiness->shouldReceive('setRecordsFresh')->once()->with($this->connection);
 
-        (new AlwaysModifiedInitializer($this->stickiness, $this->db))->initializeStickinessState($this->event);
+        $this->initializer->initializeStickinessState($this->event);
     }
 
     public function testModifiedJob(): void
     {
-        $job = new class() implements ShouldAssumeModified {
-        };
-
-        $this->job->shouldReceive('payload')->once()->andReturn([
-            'data' => [
-                'commandName' => get_class($job),
-            ],
-        ]);
+        $this->initializer->shouldReceive('shouldAssumeFresh')->once()->with($this->job)->andReturnFalse();
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
         $this->stickiness->shouldReceive('setRecordsModified')->once()->with($this->connection);
 
-        (new AlwaysModifiedInitializer($this->stickiness, $this->db))->initializeStickinessState($this->event);
+        $this->initializer->initializeStickinessState($this->event);
     }
 
-    public function testBrokenCommandNameJob(): void
+    public function testGeneralJob(): void
     {
-        $this->job->shouldReceive('payload')->once()->andReturn([
-            'data' => [
-                'commandName' => ['foo'],
-            ],
-        ]);
+        $this->initializer->shouldReceive('shouldAssumeFresh')->once()->with($this->job)->andReturnNull();
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
         $this->stickiness->shouldReceive('setRecordsModified')->once()->with($this->connection);
 
-        (new AlwaysModifiedInitializer($this->stickiness, $this->db))->initializeStickinessState($this->event);
-    }
-
-    public function testMissingCommandNameJob(): void
-    {
-        $this->job->shouldReceive('payload')->once()->andReturn([
-            'data' => [],
-        ]);
-        $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
-        $this->stickiness->shouldReceive('setRecordsModified')->once()->with($this->connection);
-
-        (new AlwaysModifiedInitializer($this->stickiness, $this->db))->initializeStickinessState($this->event);
+        $this->initializer->initializeStickinessState($this->event);
     }
 }
