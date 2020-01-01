@@ -1,6 +1,6 @@
 <?php
 
-namespace Mpyw\LaravelCachedDatabaseStickiness\Tests;
+namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs;
 
 class GeneralJob
 {

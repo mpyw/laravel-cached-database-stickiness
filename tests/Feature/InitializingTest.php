@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Mpyw\LaravelCachedDatabaseStickiness\ConnectionServiceProvider;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessServiceProvider;
-use Mpyw\LaravelCachedDatabaseStickiness\Tests\FreshJob;
-use Mpyw\LaravelCachedDatabaseStickiness\Tests\GeneralJob;
-use Mpyw\LaravelCachedDatabaseStickiness\Tests\ModifiedJob;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs\FreshJob;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs\GeneralJob;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs\ModifiedJob;
 use Orchestra\Testbench\TestCase;
 use ReflectionProperty;
 
