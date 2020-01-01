@@ -5,13 +5,10 @@ namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Feature;
 use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\AnonymousNotifiable;
-use Illuminate\Notifications\Channels\MailChannel;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
-use Mockery;
 use Mpyw\LaravelCachedDatabaseStickiness\ConnectionServiceProvider;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessServiceProvider;
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs\FreshJob;
@@ -94,29 +91,17 @@ class InitializingTest extends TestCase
 
         DB::connection();
 
-        $general = Mockery::mock(GeneralNotification::class . '[via]');
-        $general->shouldReceive('via')->andReturn([MailChannel::class]);
-        $general->shouldReceive('toMail')->andReturn(new MailMessage());
-
-        $fresh = Mockery::mock(FreshNotification::class . '[via]');
-        $fresh->shouldReceive('via')->andReturn([MailChannel::class]);
-        $fresh->shouldReceive('toMail')->andReturn(new MailMessage());
-
-        $modified = Mockery::mock(ModifiedNotification::class . '[via]');
-        $modified->shouldReceive('via')->andReturn([MailChannel::class]);
-        $modified->shouldReceive('toMail')->andReturn(new MailMessage());
-
         $this->assertFalse($this->getRecordsModifiedViaReflection());
 
-        Notification::send(collect([new AnonymousNotifiable()]), $general);
+        Notification::send(collect([new AnonymousNotifiable()]), new GeneralNotification());
 
         $this->assertTrue($this->getRecordsModifiedViaReflection());
 
-        Notification::send(collect([new AnonymousNotifiable()]), $fresh);
+        Notification::send(collect([new AnonymousNotifiable()]), new FreshNotification());
 
         $this->assertFalse($this->getRecordsModifiedViaReflection());
 
-        Notification::send(collect([new AnonymousNotifiable()]), $modified);
+        Notification::send(collect([new AnonymousNotifiable()]), new ModifiedNotification());
 
         $this->assertTrue($this->getRecordsModifiedViaReflection());
     }
