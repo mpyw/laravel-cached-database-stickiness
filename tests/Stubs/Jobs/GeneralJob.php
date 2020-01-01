@@ -2,7 +2,9 @@
 
 namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs;
 
-class GeneralJob
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class GeneralJob implements ShouldQueue
 {
     public function handle(): void
     {

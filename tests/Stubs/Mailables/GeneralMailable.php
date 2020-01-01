@@ -4,9 +4,8 @@ namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Mailables;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Mpyw\LaravelCachedDatabaseStickiness\ShouldAssumeFresh;
 
-class FreshMailable extends Mailable implements ShouldQueue, ShouldAssumeFresh
+class GeneralMailable extends Mailable implements ShouldQueue
 {
     public function build()
     {

@@ -4,18 +4,18 @@ namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Unit\JobInitializers\Concer
 
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Events\CallQueuedListener;
-use Illuminate\Mail\Mailable;
 use Illuminate\Mail\SendQueuedMailable;
 use Illuminate\Notifications\AnonymousNotifiable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\SendQueuedNotifications;
 use Mockery;
 use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\Concerns\DetectsInterfaces;
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs\FreshJob;
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Jobs\GeneralJob;
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Mailables\FreshMailable;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Mailables\GeneralMailable;
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Mailables\ModifiedMailable;
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Notifications\FreshNotification;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Notifications\GeneralNotification;
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Notifications\ModifiedNotification;
 use Orchestra\Testbench\TestCase;
 
@@ -275,7 +275,7 @@ class DetectsInterfacesTest extends TestCase
                 'commandName' => 'Illuminate\Notifications\SendQueuedNotifications',
                 'command' => serialize(new SendQueuedNotifications(
                     collect([new AnonymousNotifiable()]),
-                    new Notification())
+                    new GeneralNotification())
                 ),
             ],
         ]);
@@ -353,7 +353,7 @@ class DetectsInterfacesTest extends TestCase
             'job' => 'Illuminate\Queue\CallQueuedHandler@call',
             'data' => [
                 'commandName' => 'Illuminate\Mail\SendQueuedMailable',
-                'command' => serialize(new SendQueuedMailable(new Mailable())),
+                'command' => serialize(new SendQueuedMailable(new GeneralMailable())),
             ],
         ]);
 
