@@ -43,7 +43,7 @@ This library provides the following features.
 
 - Make HTTP server to take over the database sticky state from the previous user's request within the last 5 seconds.
 - Make queue worker into referring to master by default. 
-- Make queue worker into referring to slave by implementing `ShouldAssumeFresh` on your jobs.
+- Make queue worker into referring to slave by implementing `ShouldAssumeFresh` on your Queueable (jobs, listeners and mailables).
 
 ## Diagrams
 
@@ -207,7 +207,7 @@ class DatabaseServiceProvider extends ServiceProvider
 }
 ```
 
-| | General Jobs | `ShouldAssumeFresh` Jobs | `ShouldAssumeModified` Jobs |
+| | General Queueable | `ShouldAssumeFresh` Queueable | `ShouldAssumeModified` Queueable |
 |:---:|:---:|:---:|:---:|
 | `AlwaysModifiedInitializer`<br>**(Default)**| Master | **Slave** | Master |
 | `AlwaysFreshInitializer` | Slave | Slave | **Master** |
