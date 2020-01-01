@@ -2,7 +2,7 @@
 
 namespace Mpyw\LaravelCachedDatabaseStickiness\Tests;
 
-use Mpyw\LaravelCachedDatabaseStickiness\Jobs\ShouldAssumeModified;
+use Mpyw\LaravelCachedDatabaseStickiness\ShouldAssumeModified;
 
 class ModifiedJob implements ShouldAssumeModified
 {

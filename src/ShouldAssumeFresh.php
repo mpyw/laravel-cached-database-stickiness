@@ -1,6 +1,6 @@
 <?php
 
-namespace Mpyw\LaravelCachedDatabaseStickiness\Jobs;
+namespace Mpyw\LaravelCachedDatabaseStickiness;
 
 /**
  * Interface ShouldAssumeFresh

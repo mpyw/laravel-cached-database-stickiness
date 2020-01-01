@@ -8,8 +8,8 @@ use Illuminate\Mail\SendQueuedMailable;
 use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Queue\CallQueuedHandler;
 use Illuminate\Support\Str;
-use Mpyw\LaravelCachedDatabaseStickiness\Jobs\ShouldAssumeFresh;
-use Mpyw\LaravelCachedDatabaseStickiness\Jobs\ShouldAssumeModified;
+use Mpyw\LaravelCachedDatabaseStickiness\ShouldAssumeFresh;
+use Mpyw\LaravelCachedDatabaseStickiness\ShouldAssumeModified;
 use Throwable;
 
 trait DetectsInterfaces

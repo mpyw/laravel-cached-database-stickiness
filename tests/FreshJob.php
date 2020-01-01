@@ -2,7 +2,7 @@
 
 namespace Mpyw\LaravelCachedDatabaseStickiness\Tests;
 
-use Mpyw\LaravelCachedDatabaseStickiness\Jobs\ShouldAssumeFresh;
+use Mpyw\LaravelCachedDatabaseStickiness\ShouldAssumeFresh;
 
 class FreshJob implements ShouldAssumeFresh
 {
