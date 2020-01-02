@@ -180,10 +180,82 @@ class DatabaseServiceProvider extends ServiceProvider
 }
 ```
 
-| | Source |
-|:---:|:---:|
-| `IpBasedResolver`<br>**(Default)**| Remote IP address |
-| `AuthBasedResolver` | Authenticated User ID |
+| | Source | Middleware |
+|:---:|:---:|:---:|
+| `IpBasedResolver`<br>**(Default)**| Remote IP address | |
+| `AuthBasedResolver` | Authenticated User ID | Required |
+
+You must add **`ResolveStickinessOnResolvedConnections`** middleware before `Authenticate`
+when you use `AuthBasedResolver`.
+
+```diff
+--- a/app/Http/Kernel.php
++++ b/app/Http/Kernel.php
+ <?php
+ 
+ namespace App\Http;
+ 
+ use Illuminate\Foundation\Http\Kernel as HttpKernel;
+ 
+ class Kernel extends HttpKernel
+ {
+     /* ... */
+ 
+     /**
+      * The application's route middleware groups.
+      *
+      * @var array
+      */
+     protected $middlewareGroups = [
+         'web' => [
+             \App\Http\Middleware\EncryptCookies::class,
+             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+             \Illuminate\Session\Middleware\StartSession::class,
+             // \Illuminate\Session\Middleware\AuthenticateSession::class,
+             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+             \App\Http\Middleware\VerifyCsrfToken::class,
+             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+         ],
+ 
+         'api' => [
+             'throttle:60,1',
+             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+         ],
++
++        'auth' => [
++            \App\Http\Middleware\Authenticate::class,
++            \Mpyw\LaravelCachedDatabaseStickiness\Http\Middleware\ResolveStickinessOnResolvedConnections::class,
++        ],
++
++        'auth.basic' => [
++            \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
++            \Mpyw\LaravelCachedDatabaseStickiness\Http\Middleware\ResolveStickinessOnResolvedConnections::class,
++        ],
+     ];
+ 
+     /**
+      * The application's route middleware.
+      *
+      * These middleware may be assigned to groups or used individually.
+      *
+      * @var array
+      */
+     protected $routeMiddleware = [
+-        'auth' => \App\Http\Middleware\Authenticate::class,
+-        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+         'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
+         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+         'can' => \Illuminate\Auth\Middleware\Authorize::class,
+         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+         'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+     ];
+ 
+     /* ... */
+ }
+```
 
 ### Customize Worker Behavior
 
