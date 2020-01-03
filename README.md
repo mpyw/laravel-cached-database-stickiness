@@ -185,7 +185,7 @@ class DatabaseServiceProvider extends ServiceProvider
 | `IpBasedResolver`<br>**(Default)**| Remote IP address | |
 | `AuthBasedResolver` | Authenticated User ID | Required |
 
-You must add **`ResolveStickinessOnResolvedConnections`** middleware before `Authenticate`
+You must add **`ResolveStickinessOnResolvedConnections`** middleware after `Authenticate`
 when you use `AuthBasedResolver`.
 
 ```diff
