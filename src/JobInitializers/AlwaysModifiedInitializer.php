@@ -6,6 +6,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Queue\Events\JobProcessing;
 use Mpyw\LaravelCachedDatabaseStickiness\Events\ConnectionCreated;
 use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\Concerns\DetectsInterfaces;
+use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\Concerns\RevokesInitializeEffects;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessManager;
 
 /**
@@ -15,7 +16,7 @@ use Mpyw\LaravelCachedDatabaseStickiness\StickinessManager;
  */
 class AlwaysModifiedInitializer implements JobInitializerInterface
 {
-    use DetectsInterfaces;
+    use DetectsInterfaces, RevokesInitializeEffects;
 
     /**
      * @var \Mpyw\LaravelCachedDatabaseStickiness\StickinessManager
@@ -44,6 +45,8 @@ class AlwaysModifiedInitializer implements JobInitializerInterface
      */
     public function initializeOnResolvedConnections(JobProcessing $event): void
     {
+        $this->syncRecordsModifiedStates($this->db->getConnections());
+
         if ($this->shouldAssumeFresh($event->job)) {
             foreach ($this->db->getConnections() as $connection) {
                 $this->stickiness->setRecordsFresh($connection);
@@ -61,6 +64,8 @@ class AlwaysModifiedInitializer implements JobInitializerInterface
      */
     public function initializeOnNewConnection(JobProcessing $jobProcessingEvent, ConnectionCreated $connectionCreatedEvent): void
     {
+        $this->syncRecordsModifiedStates([$connectionCreatedEvent->connection]);
+
         $this->shouldAssumeFresh($jobProcessingEvent->job)
             ? $this->stickiness->setRecordsFresh($connectionCreatedEvent->connection)
             : $this->stickiness->setRecordsModified($connectionCreatedEvent->connection);
