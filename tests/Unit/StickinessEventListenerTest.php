@@ -5,6 +5,7 @@ namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Unit;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -24,11 +25,23 @@ class StickinessEventListenerTest extends TestCase
      */
     protected $stickiness;
 
+    /**
+     * @var \Illuminate\Database\DatabaseManager|\Mockery\LegacyMockInterface|\Mockery\MockInterface
+     */
+    protected $db;
+
+    /**
+     * @var \Illuminate\Database\ConnectionInterface|\Mockery\LegacyMockInterface|\Mockery\MockInterface
+     */
+    protected $connection;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->stickiness = Mockery::mock(StickinessManager::class);
+        $this->db = Mockery::mock(DatabaseManager::class);
+        $this->connection = Mockery::mock(ConnectionInterface::class);
     }
 
     protected function setCurrentJobProcessingEvent(StickinessEventListener $listener, ?JobProcessing $event): void
@@ -47,52 +60,112 @@ class StickinessEventListenerTest extends TestCase
         return $property->getValue($listener);
     }
 
+    protected function setCurrentRecordsModifiedStates(StickinessEventListener $listener, array $values)
+    {
+        /* @noinspection PhpUnhandledExceptionInspection */
+        $property = new ReflectionProperty($listener, 'currentRecordsModifiedStates');
+        $property->setAccessible(true);
+        $property->setValue($listener, $values);
+    }
+
+    protected function getCurrentRecordsModifiedStates(StickinessEventListener $listener)
+    {
+        /* @noinspection PhpUnhandledExceptionInspection */
+        $property = new ReflectionProperty($listener, 'currentRecordsModifiedStates');
+        $property->setAccessible(true);
+        return $property->getValue($listener);
+    }
+
     public function testOnJobProcessing(): void
     {
         $event = Mockery::mock(JobProcessing::class);
 
         $this->stickiness->shouldReceive('initializeStickinessState')->once()->with($event);
+        $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
+        $this->connection->shouldReceive('getName')->andReturn('foo');
+        $this->stickiness->shouldReceive('getRecordsModified')->andReturnFalse();
 
-        $listener = new StickinessEventListener($this->stickiness);
+        $listener = new StickinessEventListener($this->stickiness, $this->db);
 
         $this->assertNull($this->getCurrentJobProcessingEvent($listener));
+        $this->assertSame([], $this->getCurrentRecordsModifiedStates($listener));
 
         $listener->onJobProcessing($event);
 
         $this->assertSame($event, $this->getCurrentJobProcessingEvent($listener));
+        $this->assertSame(['foo' => false], $this->getCurrentRecordsModifiedStates($listener));
     }
 
-    public function testOnJobProcessed(): void
+    public function testOnJobProcessedWithStateMemo(): void
     {
-        $listener = new StickinessEventListener($this->stickiness);
+        $listener = new StickinessEventListener($this->stickiness, $this->db);
+
+        $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
+        $this->connection->shouldReceive('getName')->andReturn('foo');
+        $this->stickiness->shouldReceive('getRecordsModified')->andReturnFalse();
+        $this->stickiness->shouldReceive('setRecordsModified')->andReturnFalse();
 
         $this->setCurrentJobProcessingEvent($listener, $event = Mockery::mock(JobProcessing::class));
+        $this->setCurrentRecordsModifiedStates($listener, ['foo' => false]);
 
         $listener->onJobProcessed(Mockery::mock(JobProcessed::class));
 
         $this->assertNull($this->getCurrentJobProcessingEvent($listener));
+        $this->assertSame([], $this->getCurrentRecordsModifiedStates($listener));
+    }
+
+    public function testOnJobProcessedWithoutStateMemo(): void
+    {
+        $listener = new StickinessEventListener($this->stickiness, $this->db);
+
+        $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
+        $this->connection->shouldReceive('getName')->andReturn('foo');
+        $this->stickiness->shouldReceive('getRecordsModified')->andReturnFalse();
+        $this->stickiness->shouldNotReceive('setRecordsModified');
+
+        $this->setCurrentJobProcessingEvent($listener, $event = Mockery::mock(JobProcessing::class));
+        $this->setCurrentRecordsModifiedStates($listener, []);
+
+        $listener->onJobProcessed(Mockery::mock(JobProcessed::class));
+
+        $this->assertNull($this->getCurrentJobProcessingEvent($listener));
+        $this->assertSame([], $this->getCurrentRecordsModifiedStates($listener));
     }
 
     public function testOnJobExceptionOccurred(): void
     {
-        $listener = new StickinessEventListener($this->stickiness);
+        $listener = new StickinessEventListener($this->stickiness, $this->db);
+
+        $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
+        $this->connection->shouldReceive('getName')->andReturn('foo');
+        $this->stickiness->shouldReceive('getRecordsModified')->andReturnFalse();
+        $this->stickiness->shouldReceive('setRecordsModified')->andReturnFalse();
 
         $this->setCurrentJobProcessingEvent($listener, $event = Mockery::mock(JobProcessing::class));
+        $this->setCurrentRecordsModifiedStates($listener, ['foo' => false]);
 
         $listener->onJobExceptionOccurred(Mockery::mock(JobExceptionOccurred::class));
 
         $this->assertNull($this->getCurrentJobProcessingEvent($listener));
+        $this->assertSame([], $this->getCurrentRecordsModifiedStates($listener));
     }
 
     public function testOnJobFailed(): void
     {
-        $listener = new StickinessEventListener($this->stickiness);
+        $listener = new StickinessEventListener($this->stickiness, $this->db);
+
+        $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
+        $this->connection->shouldReceive('getName')->andReturn('foo');
+        $this->stickiness->shouldReceive('getRecordsModified')->andReturnFalse();
+        $this->stickiness->shouldReceive('setRecordsModified')->andReturnFalse();
 
         $this->setCurrentJobProcessingEvent($listener, $event = Mockery::mock(JobProcessing::class));
+        $this->setCurrentRecordsModifiedStates($listener, ['foo' => false]);
 
         $listener->onJobFailed(Mockery::mock(JobFailed::class));
 
         $this->assertNull($this->getCurrentJobProcessingEvent($listener));
+        $this->assertSame([], $this->getCurrentRecordsModifiedStates($listener));
     }
 
     public function onConnectionCreatedWithCurrentJobProcessingEvent(): void
@@ -100,7 +173,7 @@ class StickinessEventListenerTest extends TestCase
         $job = Mockery::mock(Job::class);
         $connection = Mockery::mock(Connection::class);
 
-        $listener = new StickinessEventListener($this->stickiness);
+        $listener = new StickinessEventListener($this->stickiness, $this->db);
 
         $this->setCurrentJobProcessingEvent($listener, $event = new JobProcessing('foo', $job));
 
@@ -114,7 +187,7 @@ class StickinessEventListenerTest extends TestCase
     {
         $connection = Mockery::mock(Connection::class);
 
-        $listener = new StickinessEventListener($this->stickiness);
+        $listener = new StickinessEventListener($this->stickiness, $this->db);
 
         $this->setCurrentJobProcessingEvent($listener, null);
 
@@ -126,11 +199,17 @@ class StickinessEventListenerTest extends TestCase
 
     public function testOnRecordsHaveBeenModified(): void
     {
-        $connection = Mockery::mock(ConnectionInterface::class);
+        $connection = Mockery::mock(Connection::class);
 
         $this->stickiness->shouldReceive('markAsModified')->once()->with($connection);
+        $connection->shouldReceive('getName')->andReturn('foo');
 
-        $listener = new StickinessEventListener($this->stickiness);
+        $listener = new StickinessEventListener($this->stickiness, $this->db);
+
+        $this->setCurrentRecordsModifiedStates($listener, ['foo' => false, 'bar' => false]);
+
         $listener->onRecordsHaveBeenModified(new RecordsHaveBeenModified($connection));
+
+        $this->assertSame(['bar' => false], $this->getCurrentRecordsModifiedStates($listener));
     }
 }
