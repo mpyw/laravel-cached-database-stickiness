@@ -49,6 +49,7 @@ class StickinessEventListener
     public function onJobProcessed(JobProcessed $event): void
     {
         $this->currentJobProcessingEvent = null;
+        $this->stickiness->revokeInitializeEffects();
     }
 
     /**
@@ -59,6 +60,7 @@ class StickinessEventListener
     public function onJobExceptionOccurred(JobExceptionOccurred $event): void
     {
         $this->currentJobProcessingEvent = null;
+        $this->stickiness->revokeInitializeEffects();
     }
 
     /**
@@ -69,6 +71,7 @@ class StickinessEventListener
     public function onJobFailed(JobFailed $event): void
     {
         $this->currentJobProcessingEvent = null;
+        $this->stickiness->revokeInitializeEffects();
     }
 
     /**
@@ -93,5 +96,6 @@ class StickinessEventListener
     public function onRecordsHaveBeenModified(RecordsHaveBeenModified $event): void
     {
         $this->stickiness->markAsModified($event->connection);
+        $this->stickiness->dontRevokeEffectsOn($event->connection);
     }
 }

@@ -126,6 +126,24 @@ class StickinessManager
         }
     }
 
+    /**
+     * Revoke database stickiness state initialization after processing each job.
+     */
+    public function revokeInitializeEffects(): void
+    {
+        $this->jobInitializer()->revokeInitializeEffects();
+    }
+
+    /**
+     * Avoid revoking stickiness state initialization when DB::recordsHaveBeenModified() called on the Job execution.
+     *
+     * @param \Illuminate\Database\Connection|\Illuminate\Database\ConnectionInterface $connection
+     */
+    public function dontRevokeEffectsOn(ConnectionInterface $connection): void
+    {
+        $this->jobInitializer()->dontRevokeEffectsOn($connection);
+    }
+
     /** @noinspection PhpDocMissingThrowsInspection */
 
     /**
