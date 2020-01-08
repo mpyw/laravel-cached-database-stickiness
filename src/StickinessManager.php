@@ -4,8 +4,8 @@ namespace Mpyw\LaravelCachedDatabaseStickiness;
 
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Queue\Events\JobProcessing;
-use Mpyw\LaravelCachedDatabaseStickiness\Events\ConnectionCreated;
 use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\JobInitializerInterface;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessResolvers\StickinessResolverInterface;
 use ReflectionProperty;
@@ -16,23 +16,25 @@ use ReflectionProperty;
 class StickinessManager
 {
     /**
-     * @var \Illuminate\Database\DatabaseManager
-     */
-    protected $db;
-
-    /**
      * @var \Illuminate\Contracts\Container\Container
      */
     protected $container;
 
     /**
+     * @var \Illuminate\Database\DatabaseManager
+     */
+    protected $db;
+
+    /**
      * StickinessManager constructor.
      *
      * @param \Illuminate\Contracts\Container\Container $container
+     * @param \Illuminate\Database\DatabaseManager      $db
      */
-    public function __construct(Container $container)
+    public function __construct(Container $container, DatabaseManager $db)
     {
         $this->container = $container;
+        $this->db = $db;
     }
 
     /** @noinspection PhpDocMissingThrowsInspection */
@@ -110,20 +112,18 @@ class StickinessManager
         return $this->stickinessResolver()->isRecentlyModified($connection);
     }
 
-    /**
-     * Initialize database stickiness state before processing each job.
-     *
-     * @param \Illuminate\Queue\Events\JobProcessing                              $jobProcessingEvent
-     * @param null|\Mpyw\LaravelCachedDatabaseStickiness\Events\ConnectionCreated $connectionCreatedEvent
-     */
-    public function initializeStickinessState(JobProcessing $jobProcessingEvent, ?ConnectionCreated $connectionCreatedEvent = null): void
-    {
-        $initializer = $this->jobInitializer();
-        $initializer->initializeOnResolvedConnections($jobProcessingEvent);
+    /** @noinspection PhpDocMissingThrowsInspection */
 
-        if ($connectionCreatedEvent) {
-            $initializer->initializeOnNewConnection($jobProcessingEvent, $connectionCreatedEvent);
-        }
+    /**
+     * Start Initializing database stickiness states before processing each job.
+     *
+     * @param  \Illuminate\Queue\Events\JobProcessing                          $event
+     * @return \Mpyw\LaravelCachedDatabaseStickiness\ApplyingJobInitialization
+     */
+    public function startInitializingJob(JobProcessing $event): ApplyingJobInitialization
+    {
+        return (new ApplyingJobInitialization($this, $this->db, $this->jobInitializer()))
+            ->initializeOnResolvedConnections($event);
     }
 
     /** @noinspection PhpDocMissingThrowsInspection */
