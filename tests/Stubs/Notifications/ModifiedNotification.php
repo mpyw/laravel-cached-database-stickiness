@@ -8,10 +8,11 @@ use Illuminate\Notifications\Channels\MailChannel;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Mpyw\LaravelCachedDatabaseStickiness\ShouldAssumeModified;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Concerns\LogsConnectionState;
 
 class ModifiedNotification extends Notification implements ShouldQueue, ShouldAssumeModified
 {
-    use Queueable;
+    use Queueable, LogsConnectionState;
 
     public function via(): array
     {
@@ -20,6 +21,8 @@ class ModifiedNotification extends Notification implements ShouldQueue, ShouldAs
 
     public function toMail(): MailMessage
     {
+        $this->logState();
+
         return new MailMessage();
     }
 }
