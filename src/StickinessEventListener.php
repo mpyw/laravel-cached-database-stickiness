@@ -22,6 +22,11 @@ class StickinessEventListener
     protected $currentJobProcessingEvent;
 
     /**
+     * @var \Mpyw\LaravelCachedDatabaseStickiness\ApplyingJobInitialization
+     */
+    protected $currentJobInitialization;
+
+    /**
      * StickinessEventListener constructor.
      *
      * @param \Mpyw\LaravelCachedDatabaseStickiness\StickinessManager $stickiness
@@ -38,7 +43,8 @@ class StickinessEventListener
      */
     public function onJobProcessing(JobProcessing $event): void
     {
-        $this->stickiness->initializeStickinessState($this->currentJobProcessingEvent = $event);
+        $this->currentJobProcessingEvent = $event;
+        $this->currentJobInitialization = $this->stickiness->startInitializingJob($event);
     }
 
     /**
@@ -49,6 +55,7 @@ class StickinessEventListener
     public function onJobProcessed(JobProcessed $event): void
     {
         $this->currentJobProcessingEvent = null;
+        $this->currentJobInitialization = null;
     }
 
     /**
@@ -59,6 +66,7 @@ class StickinessEventListener
     public function onJobExceptionOccurred(JobExceptionOccurred $event): void
     {
         $this->currentJobProcessingEvent = null;
+        $this->currentJobInitialization = null;
     }
 
     /**
@@ -69,6 +77,7 @@ class StickinessEventListener
     public function onJobFailed(JobFailed $event): void
     {
         $this->currentJobProcessingEvent = null;
+        $this->currentJobInitialization = null;
     }
 
     /**
@@ -78,8 +87,8 @@ class StickinessEventListener
      */
     public function onConnectionCreated(ConnectionCreated $event): void
     {
-        if ($this->currentJobProcessingEvent) {
-            $this->stickiness->initializeStickinessState($this->currentJobProcessingEvent, $event);
+        if ($this->currentJobProcessingEvent && $this->currentJobInitialization) {
+            $this->currentJobInitialization->initializeOnNewConnection($this->currentJobProcessingEvent, $event);
         }
 
         $this->stickiness->resolveRecordsModified($event->connection);
@@ -92,6 +101,10 @@ class StickinessEventListener
      */
     public function onRecordsHaveBeenModified(RecordsHaveBeenModified $event): void
     {
+        if ($this->currentJobInitialization) {
+            $this->currentJobInitialization->dontRevokeEffectsOn($event->connection);
+        }
+
         $this->stickiness->markAsModified($event->connection);
     }
 }

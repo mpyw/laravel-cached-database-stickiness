@@ -7,10 +7,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Channels\MailChannel;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Concerns\LogsConnectionState;
 
 class GeneralNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, LogsConnectionState;
 
     public function via(): array
     {
@@ -19,6 +20,8 @@ class GeneralNotification extends Notification implements ShouldQueue
 
     public function toMail(): MailMessage
     {
+        $this->logState();
+
         return new MailMessage();
     }
 }
