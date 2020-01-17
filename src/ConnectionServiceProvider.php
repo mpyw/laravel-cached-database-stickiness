@@ -15,7 +15,7 @@ class ConnectionServiceProvider extends ServiceProvider
     /**
      * {@inheritdoc}
      */
-    public function boot(): void
+    public function register(): void
     {
         Connection::resolverFor('mysql', $this->resolverFor(MySqlConnection::class));
         Connection::resolverFor('pgsql', $this->resolverFor(PostgresConnection::class));
