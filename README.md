@@ -135,7 +135,7 @@ use Illuminate\Support\ServiceProvider;
 
 class DatabaseServiceProvider extends ServiceProvider
 {
-    public function boot(): void
+    public function register(): void
     {
         Connection::resolverFor('mysql', function (...$parameters) {
             return new MySqlConnection(...$parameters);
