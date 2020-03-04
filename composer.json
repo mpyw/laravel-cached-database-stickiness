@@ -30,8 +30,8 @@
         "illuminate/support": "^5.8 || ^6.0 || ^7.0 || ^8.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^4.0",
-        "laravel/framework": "^6.0",
+        "orchestra/testbench": "^5.0",
+        "laravel/framework": "^7.0",
         "php-coveralls/php-coveralls": "^2.1",
         "friendsofphp/php-cs-fixer": "^2.15",
         "mockery/mockery": "^1.3"
