@@ -37,6 +37,18 @@ return [
 ];
 ```
 
+Then select the proper cache driver:
+
+| Driver | Is eligible? | Description |
+|:---|:---:|:---|
+| **`redis`** | 😄 | Very fast, scalable and reliable driver | 
+| **`memcached`** | 😄 |  Alternative for Redis | 
+| `dynamodb` | 😃 |  It works but not so suitable for short-term caching |
+| `apc` | 😧 | It works unless PHP processes are running in multiple machines or containers | 
+| `file` | 😧 | It works unless PHP processes are running in multiple machines or containers |
+| <del>`database`</del> | 🤮 | We'll get into a chicken-or-egg situation |
+| <del>`array`</del> | 🤮 | Just for testing |
+
 ## Features
 
 This library provides the following features.
