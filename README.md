@@ -295,3 +295,67 @@ class DatabaseServiceProvider extends ServiceProvider
 |:---:|:---:|:---:|:---:|
 | `AlwaysModifiedInitializer`<br>**(Default)**| Master | **Slave** | Master |
 | `AlwaysFreshInitializer` | Slave | Slave | **Master** |
+
+## Attention
+
+### Don't call `Schema::defaultStringLength()` in `ServiceProvider::boot()`
+
+#### Problem
+
+Assume that you have the following `ServiceProvider`. 
+
+```php
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        Schema::defaultStringLength(191);
+    }
+}
+```
+
+If you run `composer install` or directly call `php artisan pacakge:discover`, it will unexpectedly use caches. It will trigger errors when we execute the command in the environment unreachable to the cache repository.
+
+```
+RedisException  : Operation timed out
+```
+
+#### Solution
+
+Directly use **`Illuminate\Database\Schema\Builder`**. Don't call via `Illuminate\Support\Facades\Schema` Facade.
+
+```diff
+ <?php
+ 
+ namespace App\Providers;
+
+-use Illuminate\Support\Facades\Schema;
++use Illuminate\Database\Schema\Builder as SchemaBuilder;
+ use Illuminate\Support\ServiceProvider;
+ 
+ class AppServiceProvider extends ServiceProvider
+ {
+     /**
+      * Bootstrap any application services.
+      *
+      * @return void
+      */
+     public function boot()
+     {
+-        Schema::defaultStringLength(191);
++        SchemaBuilder::defaultStringLength(191);
+     }
+ }
+```
