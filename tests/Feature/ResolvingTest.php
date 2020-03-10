@@ -5,6 +5,7 @@ namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Feature;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelCachedDatabaseStickiness\ConnectionServiceProvider;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessServiceProvider;
@@ -87,6 +88,21 @@ class ResolvingTest extends TestCase
 
         $this->assertInstanceOf(Closure::class, $this->getReadPdoViaReflection());
         $this->assertInstanceOf(PDO::class, $this->getWritePdoViaReflection());
+    }
+
+    public function testNonAffectingStatementWhenStickyDisabled(): void
+    {
+        // Cached stickiness should be ignored when sticky configuration is false
+        Config::set('database.connections.test.sticky', false);
+
+        Cache::put('database-stickiness:connection=test,resolver=ip,ip=192.168.0.1', true, 5);
+
+        /* @var \Illuminate\Database\Connection $connection */
+        $connection = DB::connection();
+        $connection->select('select 1');
+
+        $this->assertInstanceOf(PDO::class, $this->getReadPdoViaReflection());
+        $this->assertInstanceOf(Closure::class, $this->getWritePdoViaReflection());
     }
 
     public function testAffectingStatementWhenCacheDoesNotExist(): void
