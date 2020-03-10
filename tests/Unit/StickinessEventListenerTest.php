@@ -137,6 +137,7 @@ class StickinessEventListenerTest extends TestCase
         $this->setCurrentJobInitialization($listener, $this->initialization);
 
         $this->initialization->shouldReceive('initializeOnNewConnection')->once()->with($event)->andReturnSelf();
+        $connection->shouldReceive('getConfig')->once()->with('sticky')->andReturnTrue();
         $this->stickiness->shouldReceive('resolveRecordsModified')->once();
 
         $listener->onConnectionCreated(new ConnectionCreated($connection));
@@ -152,7 +153,24 @@ class StickinessEventListenerTest extends TestCase
         $this->setCurrentJobInitialization($listener, null);
 
         $this->initialization->shouldNotReceive('initializeOnNewConnection');
+        $connection->shouldReceive('getConfig')->once()->with('sticky')->andReturnTrue();
         $this->stickiness->shouldReceive('resolveRecordsModified')->once();
+
+        $listener->onConnectionCreated(new ConnectionCreated($connection));
+    }
+
+    public function onConnectionCreatedWhenStickyDisabled(): void
+    {
+        $connection = Mockery::mock(Connection::class);
+
+        $listener = new StickinessEventListener($this->stickiness);
+
+        $this->setCurrentJobProcessingEvent($listener, null);
+        $this->setCurrentJobInitialization($listener, null);
+
+        $this->initialization->shouldNotReceive('initializeOnNewConnection');
+        $connection->shouldReceive('getConfig')->once()->with('sticky')->andReturnFalse();
+        $this->stickiness->shouldNotReceive('resolveRecordsModified');
 
         $listener->onConnectionCreated(new ConnectionCreated($connection));
     }
@@ -167,6 +185,7 @@ class StickinessEventListenerTest extends TestCase
         $this->setCurrentJobInitialization($listener, $this->initialization);
 
         $this->initialization->shouldReceive('dontRevokeEffectsOn')->once()->with($connection)->andReturnSelf();
+        $connection->shouldReceive('getConfig')->once()->with('sticky')->andReturnTrue();
         $this->stickiness->shouldReceive('markAsModified')->once()->with($connection);
 
         $listener->onRecordsHaveBeenModified(new RecordsHaveBeenModified($connection));
@@ -182,7 +201,24 @@ class StickinessEventListenerTest extends TestCase
         $this->setCurrentJobInitialization($listener, null);
 
         $this->initialization->shouldNotReceive('dontRevokeEffectsOn');
+        $connection->shouldReceive('getConfig')->once()->with('sticky')->andReturnTrue();
         $this->stickiness->shouldReceive('markAsModified')->once()->with($connection);
+
+        $listener->onRecordsHaveBeenModified(new RecordsHaveBeenModified($connection));
+    }
+
+    public function testOnRecordsHaveBeenModifiedWhenStickyDisabled(): void
+    {
+        $connection = Mockery::mock(ConnectionInterface::class);
+
+        $listener = new StickinessEventListener($this->stickiness);
+
+        $this->setCurrentJobProcessingEvent($listener, null);
+        $this->setCurrentJobInitialization($listener, null);
+
+        $this->initialization->shouldNotReceive('dontRevokeEffectsOn');
+        $connection->shouldReceive('getConfig')->once()->with('sticky')->andReturnFalse();
+        $this->stickiness->shouldNotReceive('markAsModified');
 
         $listener->onRecordsHaveBeenModified(new RecordsHaveBeenModified($connection));
     }
