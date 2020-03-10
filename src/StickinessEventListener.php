@@ -91,7 +91,9 @@ class StickinessEventListener
             $this->currentJobInitialization->initializeOnNewConnection($this->currentJobProcessingEvent, $event);
         }
 
-        $this->stickiness->resolveRecordsModified($event->connection);
+        if ($event->connection->getConfig('sticky')) {
+            $this->stickiness->resolveRecordsModified($event->connection);
+        }
     }
 
     /**
@@ -105,6 +107,8 @@ class StickinessEventListener
             $this->currentJobInitialization->dontRevokeEffectsOn($event->connection);
         }
 
-        $this->stickiness->markAsModified($event->connection);
+        if ($event->connection->getConfig('sticky')) {
+            $this->stickiness->markAsModified($event->connection);
+        }
     }
 }
