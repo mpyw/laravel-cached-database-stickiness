@@ -112,7 +112,7 @@ return [
                 'host' => env('DB_HOST_READONLY'),
             ] : null,
             'write' => [],
-            'sticky' => true,
+            'sticky' => (bool)env('DB_HOST_READONLY'),
             'stickiness_ttl' => 3, // Set the stickiness TTL to 3 seconds
             'driver' => 'mysql',
             'host' => env('DB_HOST', '127.0.0.1'),
