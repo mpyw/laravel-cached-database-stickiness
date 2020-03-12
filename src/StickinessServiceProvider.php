@@ -42,7 +42,7 @@ class StickinessServiceProvider extends ServiceProvider
         $this->app->singleton(StickinessEventListener::class);
         $this->app->singleton('db.factory', ConnectionFactory::class);
 
-        $this->app->bind(StickinessResolverInterface::class, IpBasedResolver::class);
-        $this->app->bind(JobInitializerInterface::class, AlwaysModifiedInitializer::class);
+        $this->app->bindIf(StickinessResolverInterface::class, IpBasedResolver::class);
+        $this->app->bindIf(JobInitializerInterface::class, AlwaysModifiedInitializer::class);
     }
 }
