@@ -180,6 +180,7 @@ class InitializingTest extends TestCase
         $this->mock(Mailer::class)->shouldReceive('send');
 
         // [7.x] Multiple Mailers Per App
+        // https://github.com/laravel/framework/pull/31073
         if (interface_exists(MailerFactory::class)) {
             $this->mock(MailerFactory::class)
                 ->shouldReceive('mailer')
@@ -211,6 +212,7 @@ class InitializingTest extends TestCase
         $this->mock(Mailer::class)->shouldReceive('send');
 
         // [7.x] Multiple Mailers Per App
+        // https://github.com/laravel/framework/pull/31073
         if (interface_exists(MailerFactory::class)) {
             $this->mock(MailerFactory::class)
                 ->shouldReceive('mailer')
