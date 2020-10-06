@@ -2,6 +2,7 @@
 
 namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Feature;
 
+use Illuminate\Contracts\Mail\Factory as MailerFactory;
 use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\AnonymousNotifiable;
@@ -178,6 +179,13 @@ class InitializingTest extends TestCase
     {
         $this->mock(Mailer::class)->shouldReceive('send');
 
+        // [7.x] Multiple Mailers Per App
+        if (interface_exists(MailerFactory::class)) {
+            $this->mock(MailerFactory::class)
+                ->shouldReceive('mailer')
+                ->andReturn($this->app->make(Mailer::class));
+        }
+
         DB::connection();
 
         $this->assertFalse($this->getRecordsModifiedViaReflection());
@@ -201,6 +209,13 @@ class InitializingTest extends TestCase
     public function testInitializationForMailables(): void
     {
         $this->mock(Mailer::class)->shouldReceive('send');
+
+        // [7.x] Multiple Mailers Per App
+        if (interface_exists(MailerFactory::class)) {
+            $this->mock(MailerFactory::class)
+                ->shouldReceive('mailer')
+                ->andReturn($this->app->make(Mailer::class));
+        }
 
         DB::connection();
 
