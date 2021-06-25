@@ -1,11 +1,11 @@
-# Laravel Cached Database Stickiness<br>[![Build Status](https://travis-ci.org/mpyw/laravel-cached-database-stickiness.svg?branch=master)](https://travis-ci.org/mpyw/laravel-cached-database-stickiness) [![Coverage Status](https://coveralls.io/repos/github/mpyw/laravel-cached-database-stickiness/badge.svg?branch=master)](https://coveralls.io/github/mpyw/laravel-cached-database-stickiness?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mpyw/laravel-cached-database-stickiness/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mpyw/laravel-cached-database-stickiness/?branch=master)
+# Laravel Cached Database Stickiness<br>[![Build Status](https://github.org/mpyw/laravel-cached-database-stickiness/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.org/mpyw/laravel-cached-database-stickiness/actions) [![Coverage Status](https://coveralls.io/repos/github/mpyw/laravel-cached-database-stickiness/badge.svg?branch=master)](https://coveralls.io/github/mpyw/laravel-cached-database-stickiness?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mpyw/laravel-cached-database-stickiness/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mpyw/laravel-cached-database-stickiness/?branch=master)
 
 Guarantee database stickiness over the same user's consecutive requests.
 
 ## Requirements
 
-- PHP: ^7.3 || ^8.0
-- Laravel: ^6.0 || ^7.0 || ^8.0
+- PHP: `^7.3 || ^8.0`
+- Laravel: `^6.0 || ^7.0 || ^8.0`
 
 ## Installing
 
