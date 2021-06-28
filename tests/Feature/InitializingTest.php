@@ -2,8 +2,6 @@
 
 namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Feature;
 
-use Illuminate\Contracts\Mail\Factory as MailerFactory;
-use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Bus;
@@ -31,6 +29,7 @@ use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Notifications\GeneralNotifi
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Notifications\ModifiedNotification;
 use Orchestra\Testbench\TestCase;
 use ReflectionProperty;
+use Swift_Mailer;
 
 class InitializingTest extends TestCase
 {
@@ -177,16 +176,6 @@ class InitializingTest extends TestCase
 
     public function testInitializationForNotifications(): void
     {
-        $this->mock(Mailer::class)->shouldReceive('send');
-
-        // [7.x] Multiple Mailers Per App
-        // https://github.com/laravel/framework/pull/31073
-        if (interface_exists(MailerFactory::class)) {
-            $this->mock(MailerFactory::class)
-                ->shouldReceive('mailer')
-                ->andReturn($this->app->make(Mailer::class));
-        }
-
         DB::connection();
 
         $this->assertFalse($this->getRecordsModifiedViaReflection());
@@ -209,15 +198,11 @@ class InitializingTest extends TestCase
 
     public function testInitializationForMailables(): void
     {
-        $this->mock(Mailer::class)->shouldReceive('send');
+        $swift = $this->mock(Swift_Mailer::class)->makePartial();
+        $swift->shouldReceive('send')->times(3)->andReturn(1);
+        $swift->shouldReceive('getTransport->stop')->times(3);
 
-        // [7.x] Multiple Mailers Per App
-        // https://github.com/laravel/framework/pull/31073
-        if (interface_exists(MailerFactory::class)) {
-            $this->mock(MailerFactory::class)
-                ->shouldReceive('mailer')
-                ->andReturn($this->app->make(Mailer::class));
-        }
+        Mail::setSwiftMailer($swift);
 
         DB::connection();
 
