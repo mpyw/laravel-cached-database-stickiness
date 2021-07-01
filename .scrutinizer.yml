@@ -9,6 +9,12 @@ filter:
 
 build:
 
+  nodes:
+    analysis:
+      tests:
+        override:
+          - php-scrutinizer-run
+
   environment:
     php: '7.4'
 
