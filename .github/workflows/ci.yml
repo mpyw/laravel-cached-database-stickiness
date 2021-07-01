@@ -34,9 +34,21 @@ jobs:
         uses: nick-invision/retry@v2
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: 'true'
+          COVERALLS_FLAG_NAME: 'laravel:${{ matrix.lib.laravel }}'
         with:
           timeout_minutes: 1
           max_attempts: 3
           command: |
             composer global require php-coveralls/php-coveralls
             php-coveralls --coverage_clover=build/logs/clover.xml -v
+
+  coverage-aggregation:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate Coverage
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
