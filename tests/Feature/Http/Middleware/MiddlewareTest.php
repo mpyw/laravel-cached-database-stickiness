@@ -4,9 +4,7 @@ namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Feature\Http\Middleware;
 
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as KernelContract;
-use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +17,7 @@ use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Models\User;
 use Orchestra\Testbench\Http\Kernel;
 use Orchestra\Testbench\TestCase;
 use PDO;
+use ReflectionMethod;
 use ReflectionProperty;
 
 abstract class MiddlewareTest extends TestCase
@@ -92,25 +91,34 @@ abstract class MiddlewareTest extends TestCase
 
     protected function resolveApplicationHttpKernel($app)
     {
-        $app->singleton(KernelContract::class, function ($app) {
-            return new class($app, $app['router'], $this->withMiddleware) extends Kernel {
-                public function __construct(Application $app, Router $router, bool $withMiddleware)
-                {
-                    $this->middlewareGroups['auth'] = array_filter([
-                        Authenticate::class,
-                        $withMiddleware ? ResolveStickinessOnResolvedConnections::class : null,
-                    ]);
-                    $this->middlewareGroups['auth.basic'] = array_filter([
-                        AuthenticateWithBasicAuth::class,
-                        $withMiddleware ? ResolveStickinessOnResolvedConnections::class : null,
-                    ]);
+        $app->afterResolving(KernelContract::class, function (Kernel $kernel) {
+            $middlewareGroups = new ReflectionProperty($kernel, 'middlewareGroups');
+            $routeMiddleware = new ReflectionProperty($kernel, 'routeMiddleware');
+            $syncMiddlewareToRouter = new ReflectionMethod($kernel, 'syncMiddlewareToRouter');
 
-                    unset($this->routeMiddleware['auth'], $this->routeMiddleware['auth.basic']);
+            $middlewareGroups->setAccessible(true);
+            $routeMiddleware->setAccessible(true);
+            $syncMiddlewareToRouter->setAccessible(true);
 
-                    parent::__construct($app, $router);
-                }
-            };
+            $middlewareGroupsValue = $middlewareGroups->getValue($kernel);
+            $routeMiddlewareValue = $middlewareGroups->getValue($kernel);
+
+            $middlewareGroupsValue['auth'] = array_filter([
+                Authenticate::class,
+                $this->withMiddleware ? ResolveStickinessOnResolvedConnections::class : null,
+            ]);
+            $middlewareGroupsValue['auth.basic'] = array_filter([
+                AuthenticateWithBasicAuth::class,
+                $this->withMiddleware ? ResolveStickinessOnResolvedConnections::class : null,
+            ]);
+            unset($routeMiddlewareValue['auth'], $routeMiddlewareValue['auth.basic']);
+
+            $middlewareGroups->setValue($kernel, $middlewareGroupsValue);
+            $routeMiddleware->setValue($kernel, $routeMiddlewareValue);
+            $syncMiddlewareToRouter->invoke($kernel);
         });
+
+        parent::resolveApplicationHttpKernel($app);
     }
 
     protected function getRecordsModifiedViaReflection()

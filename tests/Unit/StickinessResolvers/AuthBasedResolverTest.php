@@ -97,6 +97,10 @@ class AuthBasedResolverTest extends TestCase
 
     public function testMarkAsModifiedOnNoHasUserGuard(): void
     {
+        if (version_compare($this->app->version(), '9.x-dev', '>=')) {
+            $this->markTestSkipped('Guard::hasUser() has been implemented on contract as of Laravel 9.0');
+        }
+
         $this->guard = Mockery::mock(NoHasUserGuard::class);
         $this->setUserViaReflection($this->guard, $this->user);
 
@@ -132,6 +136,10 @@ class AuthBasedResolverTest extends TestCase
 
     public function testDontMarkAsModifiedWithoutUserOnNoHasUserGuard(): void
     {
+        if (version_compare($this->app->version(), '9.x-dev', '>=')) {
+            $this->markTestSkipped('Guard::hasUser() has been implemented on contract as of Laravel 9.0');
+        }
+
         $this->guard = Mockery::mock(NoHasUserGuard::class);
         $this->setUserViaReflection($this->guard, null);
 
@@ -149,6 +157,10 @@ class AuthBasedResolverTest extends TestCase
 
     public function testDontMarkAsModifiedOnUnknownGuard(): void
     {
+        if (version_compare($this->app->version(), '9.x-dev', '>=')) {
+            $this->markTestSkipped('Guard::hasUser() has been implemented on contract as of Laravel 9.0');
+        }
+
         $this->guard = Mockery::mock(Guard::class);
 
         $this->guard->shouldNotReceive('hasUser');
@@ -204,6 +216,10 @@ class AuthBasedResolverTest extends TestCase
 
     public function testIsRecentlyModifiedWhenCacheExistsOnNoHasUserGuard(): void
     {
+        if (version_compare($this->app->version(), '9.x-dev', '>=')) {
+            $this->markTestSkipped('Guard::hasUser() has been implemented on contract as of Laravel 9.0');
+        }
+
         $this->guard = Mockery::mock(NoHasUserGuard::class);
         $this->setUserViaReflection($this->guard, $this->user);
 
@@ -220,6 +236,10 @@ class AuthBasedResolverTest extends TestCase
 
     public function testIsRecentlyModifiedWhenCacheDoesNotExistOnNoHasUserGuard(): void
     {
+        if (version_compare($this->app->version(), '9.x-dev', '>=')) {
+            $this->markTestSkipped('Guard::hasUser() has been implemented on contract as of Laravel 9.0');
+        }
+
         $this->guard = Mockery::mock(NoHasUserGuard::class);
         $this->setUserViaReflection($this->guard, null);
 
@@ -236,6 +256,10 @@ class AuthBasedResolverTest extends TestCase
 
     public function testIsRecentlyModifiedOnUnknownGuard(): void
     {
+        if (version_compare($this->app->version(), '9.x-dev', '>=')) {
+            $this->markTestSkipped('Guard::hasUser() has been implemented on contract as of Laravel 9.0');
+        }
+
         $this->guard = Mockery::mock(Guard::class);
 
         $this->guard->shouldNotReceive('hasUser');
