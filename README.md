@@ -49,6 +49,8 @@ Then select the proper cache driver:
 | <del>`database`</del> | 🤮 | We'll get into a chicken-or-egg situation |
 | <del>`array`</del> | 🤮 | Just for testing |
 
+**Attention: You MUST DISABLE cluster-mode on Redis for this purpose.**
+
 ## Features
 
 This library provides the following features.
