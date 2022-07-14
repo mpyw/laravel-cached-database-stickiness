@@ -10,16 +10,20 @@ jobs:
       matrix:
         php: [7.3, 7.4, '8.0', 8.1]
         lib:
+          - { laravel: ^10.0 }
           - { laravel: ^9.0 }
           - { laravel: ^8.0 }
           - { laravel: ^7.0 }
-          - { laravel: ^6.9 }
-          - { laravel: ^6.9, flags: --prefer-lowest }
+          - { laravel: ^6.0 }
+          - { laravel: ^6.0, flags: --prefer-lowest }
         exclude:
           - { php: 8.1, lib: { laravel: ^7.0 } }
-          - { php: 8.1, lib: { laravel: ^6.9 } }
-          - { php: 8.1, lib: { laravel: ^6.9, flags: --prefer-lowest } }
+          - { php: 8.1, lib: { laravel: ^6.0 } }
+          - { php: 8.1, lib: { laravel: ^6.0, flags: --prefer-lowest } }
+          - { php: 8.0, lib: { laravel: ^10.0 } }
+          - { php: 7.4, lib: { laravel: ^10.0 } }
           - { php: 7.4, lib: { laravel: ^9.0 } }
+          - { php: 7.3, lib: { laravel: ^10.0 } }
           - { php: 7.3, lib: { laravel: ^9.0 } }
 
     steps:

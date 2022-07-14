@@ -5,7 +5,7 @@ Guarantee database stickiness over the same user's consecutive requests.
 ## Requirements
 
 - PHP: `^7.3 || ^8.0`
-- Laravel: `^6.0 || ^7.0 || ^8.0 || ^9.0`
+- Laravel: `^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0`
 
 ## Installing
 
