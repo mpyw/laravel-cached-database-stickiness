@@ -3,7 +3,7 @@
 namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Unit\JobInitializers;
 
 use Illuminate\Contracts\Queue\Job;
-use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Queue\Events\JobProcessing;
 use Mockery;
@@ -25,7 +25,7 @@ class AlwaysFreshInitializerTest extends TestCase
     protected $db;
 
     /**
-     * @var \Illuminate\Database\ConnectionInterface|\Mockery\LegacyMockInterface|\Mockery\MockInterface
+     * @var \Illuminate\Database\Connection|\Mockery\LegacyMockInterface|\Mockery\MockInterface
      */
     protected $connection;
 
@@ -55,7 +55,7 @@ class AlwaysFreshInitializerTest extends TestCase
 
         $this->stickiness = Mockery::mock(StickinessManager::class);
         $this->db = Mockery::mock(DatabaseManager::class);
-        $this->connection = Mockery::mock(ConnectionInterface::class);
+        $this->connection = Mockery::mock(Connection::class);
         $this->job = Mockery::mock(Job::class);
         $this->jobProcessingEvent = new JobProcessing('foo', $this->job);
         $this->connectionCreatedEvent = new ConnectionCreated($this->connection);
@@ -70,7 +70,7 @@ class AlwaysFreshInitializerTest extends TestCase
     {
         $this->initializer->shouldReceive('shouldAssumeModified')->once()->with($this->job)->andReturnTrue();
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
-        $this->stickiness->shouldReceive('setRecordsModified')->once()->with($this->connection);
+        $this->connection->shouldReceive('setRecordModificationState')->once()->with(true);
 
         $this->initializer->initializeOnResolvedConnections($this->jobProcessingEvent);
     }
@@ -79,7 +79,7 @@ class AlwaysFreshInitializerTest extends TestCase
     {
         $this->initializer->shouldReceive('shouldAssumeModified')->once()->with($this->job)->andReturnFalse();
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
-        $this->stickiness->shouldReceive('setRecordsFresh')->once()->with($this->connection);
+        $this->connection->shouldReceive('setRecordModificationState')->once()->with(false);
 
         $this->initializer->initializeOnResolvedConnections($this->jobProcessingEvent);
     }
@@ -88,7 +88,7 @@ class AlwaysFreshInitializerTest extends TestCase
     {
         $this->initializer->shouldReceive('shouldAssumeModified')->once()->with($this->job)->andReturnNull();
         $this->db->shouldReceive('getConnections')->once()->andReturn([$this->connection]);
-        $this->stickiness->shouldReceive('setRecordsFresh')->once()->with($this->connection);
+        $this->connection->shouldReceive('setRecordModificationState')->once()->with(false);
 
         $this->initializer->initializeOnResolvedConnections($this->jobProcessingEvent);
     }
@@ -96,7 +96,7 @@ class AlwaysFreshInitializerTest extends TestCase
     public function testInitializeOnNewConnectionWithModifiedJob(): void
     {
         $this->initializer->shouldReceive('shouldAssumeModified')->once()->with($this->job)->andReturnTrue();
-        $this->stickiness->shouldReceive('setRecordsModified')->once()->with($this->connection);
+        $this->connection->shouldReceive('setRecordModificationState')->once()->with(true);
 
         $this->initializer->initializeOnNewConnection($this->jobProcessingEvent, $this->connectionCreatedEvent);
     }
@@ -104,7 +104,7 @@ class AlwaysFreshInitializerTest extends TestCase
     public function testInitializeOnNewConnectionWithFreshJob(): void
     {
         $this->initializer->shouldReceive('shouldAssumeModified')->once()->with($this->job)->andReturnFalse();
-        $this->stickiness->shouldReceive('setRecordsFresh')->once()->with($this->connection);
+        $this->connection->shouldReceive('setRecordModificationState')->once()->with(false);
 
         $this->initializer->initializeOnNewConnection($this->jobProcessingEvent, $this->connectionCreatedEvent);
     }
@@ -112,7 +112,7 @@ class AlwaysFreshInitializerTest extends TestCase
     public function testInitializeOnNewConnectionWithGeneralJob(): void
     {
         $this->initializer->shouldReceive('shouldAssumeModified')->once()->with($this->job)->andReturnNull();
-        $this->stickiness->shouldReceive('setRecordsFresh')->once()->with($this->connection);
+        $this->connection->shouldReceive('setRecordModificationState')->once()->with(false);
 
         $this->initializer->initializeOnNewConnection($this->jobProcessingEvent, $this->connectionCreatedEvent);
     }

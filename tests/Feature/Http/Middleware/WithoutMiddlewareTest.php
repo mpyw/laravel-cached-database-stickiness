@@ -4,7 +4,7 @@ namespace Mpyw\LaravelCachedDatabaseStickiness\Tests\Feature\Http\Middleware;
 
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
-class WithoutMiddlewareTest extends MiddlewareTest
+class WithoutMiddlewareTest extends MiddlewareTestCase
 {
     protected $withMiddleware = false;
 

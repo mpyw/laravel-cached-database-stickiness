@@ -13,6 +13,8 @@ use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\JobInitializerInterface
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessManager;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessResolvers\StickinessResolverInterface;
 use Orchestra\Testbench\TestCase;
+use ReflectionClass;
+use ReflectionException;
 use ReflectionProperty;
 
 class StickinessManagerTest extends TestCase
@@ -47,56 +49,9 @@ class StickinessManagerTest extends TestCase
         $this->db = Mockery::mock(DatabaseManager::class);
     }
 
-    protected function getRecordsModified(ConnectionInterface $connection): bool
-    {
-        /* @noinspection PhpUnhandledExceptionInspection */
-        $property = new ReflectionProperty($connection, 'recordsModified');
-        $property->setAccessible(true);
-        return $property->getValue($connection);
-    }
-
-    protected function setRecordsModified(ConnectionInterface $connection, bool $bool): void
-    {
-        /* @noinspection PhpUnhandledExceptionInspection */
-        $property = new ReflectionProperty($connection, 'recordsModified');
-        $property->setAccessible(true);
-        $property->setValue($connection, $bool);
-    }
-
-    public function testSetRecordsModified(): void
-    {
-        $connection = Mockery::mock(Connection::class);
-
-        $this->assertFalse($this->getRecordsModified($connection));
-
-        $manager = new StickinessManager($this->container, $this->db);
-        $manager->setRecordsModified($connection);
-
-        $this->assertTrue($this->getRecordsModified($connection));
-    }
-
-    public function testGetRecordsModified(): void
-    {
-        $connection = Mockery::mock(Connection::class);
-
-        $this->setRecordsModified($connection, true);
-
-        $manager = new StickinessManager($this->container, $this->db);
-        $this->assertTrue($manager->getRecordsModified($connection));
-    }
-
-    public function testSetRecordsFresh(): void
-    {
-        $connection = Mockery::mock(Connection::class);
-
-        $this->setRecordsModified($connection, true);
-
-        $manager = new StickinessManager($this->container, $this->db);
-        $manager->setRecordsFresh($connection);
-
-        $this->assertFalse($this->getRecordsModified($connection));
-    }
-
+    /**
+     * @throws ReflectionException
+     */
     public function testResolveRecordsModified(): void
     {
         $this->container->shouldReceive('make')
@@ -104,30 +59,30 @@ class StickinessManagerTest extends TestCase
             ->with(StickinessResolverInterface::class)
             ->andReturn($this->resolver);
 
-        $connection = Mockery::mock(Connection::class);
+        $connection = (new ReflectionClass(Connection::class))->newInstanceWithoutConstructor();
 
         $this->resolver->shouldReceive('isRecentlyModified')->once()->with($connection)->andReturnTrue();
 
-        $this->assertFalse($this->getRecordsModified($connection));
+        $this->assertFalse($connection->hasModifiedRecords());
 
         $manager = new StickinessManager($this->container, $this->db);
         $manager->resolveRecordsModified($connection);
 
-        $this->assertTrue($this->getRecordsModified($connection));
+        $this->assertTrue($connection->hasModifiedRecords());
     }
 
     public function testResolveRecordsAlreadyModified(): void
     {
-        $connection = Mockery::mock(Connection::class);
+        $connection = (new ReflectionClass(Connection::class))->newInstanceWithoutConstructor();
 
         $this->resolver->shouldNotReceive('isRecentlyModified');
 
-        $this->setRecordsModified($connection, true);
+        $connection->setRecordModificationState(true);
 
         $manager = new StickinessManager($this->container, $this->db);
         $manager->resolveRecordsModified($connection);
 
-        $this->assertTrue($this->getRecordsModified($connection));
+        $this->assertTrue($connection->hasModifiedRecords());
     }
 
     public function testMarkAsModified(): void

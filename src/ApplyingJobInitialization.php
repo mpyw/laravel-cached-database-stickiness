@@ -54,7 +54,7 @@ class ApplyingJobInitialization
     {
         foreach ($this->db->getConnections() as $connection) {
             /* @var \Illuminate\Database\Connection|\Illuminate\Database\ConnectionInterface $connection */
-            $this->recordsModifiedStates[$connection->getName()] = $this->stickiness->getRecordsModified($connection);
+            $this->recordsModifiedStates[$connection->getName()] = $connection->hasModifiedRecords();
         }
 
         $this->job->initializeOnResolvedConnections($event);
@@ -73,7 +73,7 @@ class ApplyingJobInitialization
     {
         $connection = $connectionCreatedEvent->connection;
 
-        $this->recordsModifiedStates[$connection->getName()] = $this->stickiness->getRecordsModified($connection);
+        $this->recordsModifiedStates[$connection->getName()] = $connection->hasModifiedRecords();
 
         $this->job->initializeOnNewConnection($jobProcessingEvent, $connectionCreatedEvent);
 
@@ -101,7 +101,7 @@ class ApplyingJobInitialization
         foreach ($this->db->getConnections() as $connection) {
             /* @var \Illuminate\Database\Connection|\Illuminate\Database\ConnectionInterface $connection */
             if (null !== $state = $this->recordsModifiedStates[$connection->getName()] ?? null) {
-                $this->stickiness->setRecordsModified($connection, $state);
+                $connection->setRecordModificationState($state);
             }
         }
     }

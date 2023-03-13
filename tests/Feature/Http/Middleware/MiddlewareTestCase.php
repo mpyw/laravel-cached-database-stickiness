@@ -20,7 +20,7 @@ use PDO;
 use ReflectionMethod;
 use ReflectionProperty;
 
-abstract class MiddlewareTest extends TestCase
+abstract class MiddlewareTestCase extends TestCase
 {
     /**
      * @var null|bool

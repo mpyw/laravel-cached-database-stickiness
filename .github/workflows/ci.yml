@@ -8,26 +8,18 @@ jobs:
 
     strategy:
       matrix:
-        php: [7.3, 7.4, '8.0', 8.1]
+        php: ['8.0', 8.1, 8.2]
         lib:
+          - { laravel: ^11.0 }
           - { laravel: ^10.0 }
           - { laravel: ^9.0 }
-          - { laravel: ^8.0 }
-          - { laravel: ^7.0 }
-          - { laravel: ^6.0 }
-          - { laravel: ^6.0, flags: --prefer-lowest }
         exclude:
-          - { php: 8.1, lib: { laravel: ^7.0 } }
-          - { php: 8.1, lib: { laravel: ^6.0 } }
-          - { php: 8.1, lib: { laravel: ^6.0, flags: --prefer-lowest } }
           - { php: 8.0, lib: { laravel: ^10.0 } }
-          - { php: 7.4, lib: { laravel: ^10.0 } }
-          - { php: 7.4, lib: { laravel: ^9.0 } }
-          - { php: 7.3, lib: { laravel: ^10.0 } }
-          - { php: 7.3, lib: { laravel: ^9.0 } }
+          - { php: 8.0, lib: { laravel: ^11.0 } }
+          - { php: 8.1, lib: { laravel: ^11.0 } }
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -35,7 +27,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: xdebug
 
-      - run: composer require "laravel/framework:${{ matrix.lib.laravel }}" --dev ${{ matrix.lib.flags }}
+      - run: composer require "laravel/framework:${{ matrix.lib.laravel }}" --dev
       - run: mkdir -p build/logs
       - run: vendor/bin/phpunit --coverage-clover build/logs/clover.xml
 

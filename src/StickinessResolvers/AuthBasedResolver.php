@@ -56,30 +56,15 @@ class AuthBasedResolver implements StickinessResolverInterface
     public function isRecentlyModified(ConnectionInterface $connection): bool
     {
         /* @noinspection PhpUnhandledExceptionInspection */
-        return $this->hasUser()
-            ? $this->cache->has(static::getCacheKey($connection, $this->guard->user()))
-            : false;
+        return $this->hasUser() && $this->cache->has(static::getCacheKey($connection, $this->guard->user()));
     }
-
-    /** @noinspection PhpDocMissingThrowsInspection */
 
     /**
      * @return bool
      */
     protected function hasUser(): bool
     {
-        if (method_exists($this->guard, 'hasUser')) {
-            return $this->guard->hasUser();
-        }
-
-        if (!property_exists($this->guard, 'user')) {
-            return false;
-        }
-
-        /* @noinspection PhpUnhandledExceptionInspection */
-        $property = new ReflectionProperty($this->guard, 'user');
-        $property->setAccessible(true);
-        return (bool)$property->getValue($this->guard);
+        return $this->guard->hasUser();
     }
 
     /**

@@ -73,7 +73,7 @@ class ApplyingJobInitializationTest extends TestCase
 
         $this->db->shouldReceive('getConnections')->once()->andReturn([$connection]);
         $connection->shouldReceive('getName')->once()->andReturn('bar');
-        $this->stickiness->shouldReceive('getRecordsModified')->once()->with($connection)->andReturnTrue();
+        $connection->shouldReceive('hasModifiedRecords')->once()->andReturnTrue();
         $this->job->shouldReceive('initializeOnResolvedConnections')->once()->with($event);
 
         $initialization = $this->newApplyingJobInitializationWithoutDestructor($this->stickiness, $this->db, $this->job);
@@ -91,7 +91,7 @@ class ApplyingJobInitializationTest extends TestCase
         $jobProcessingEvent = Mockery::mock(JobProcessing::class);
 
         $connection->shouldReceive('getName')->once()->andReturn('bar');
-        $this->stickiness->shouldReceive('getRecordsModified')->once()->with($connection)->andReturnTrue();
+        $connection->shouldReceive('hasModifiedRecords')->once()->andReturnTrue();
         $this->job->shouldReceive('initializeOnNewConnection')->once()->with($jobProcessingEvent, $connectionCreatedEvent);
 
         $initialization = $this->newApplyingJobInitializationWithoutDestructor($this->stickiness, $this->db, $this->job);
@@ -119,15 +119,15 @@ class ApplyingJobInitializationTest extends TestCase
     {
         $foo = Mockery::mock(Connection::class);
         $foo->shouldReceive('getName')->once()->andReturn('foo');
-        $this->stickiness->shouldReceive('setRecordsModified')->with($foo, true)->once();
+        $foo->shouldReceive('setRecordModificationState')->with(true)->once();
 
         $bar = Mockery::mock(Connection::class);
         $bar->shouldReceive('getName')->once()->andReturn('bar');
-        $this->stickiness->shouldReceive('setRecordsModified')->with($bar, false)->once();
+        $bar->shouldReceive('setRecordModificationState')->with(false)->once();
 
         $baz = Mockery::mock(Connection::class);
         $baz->shouldReceive('getName')->once()->andReturn('baz');
-        $this->stickiness->shouldNotReceive('setRecordsModified')->with($baz, null);
+        $baz->shouldNotReceive('setRecordModificationState');
 
         $this->db->shouldReceive('getConnections')->once()->andReturn([$foo, $bar, $baz]);
 

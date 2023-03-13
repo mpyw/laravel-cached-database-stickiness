@@ -3,12 +3,12 @@
 namespace Mpyw\LaravelCachedDatabaseStickiness;
 
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Queue\Events\JobProcessing;
 use Mpyw\LaravelCachedDatabaseStickiness\JobInitializers\JobInitializerInterface;
 use Mpyw\LaravelCachedDatabaseStickiness\StickinessResolvers\StickinessResolverInterface;
-use ReflectionProperty;
 
 /**
  * Class StickinessManager
@@ -42,15 +42,14 @@ class StickinessManager
     /**
      * Set DB::$recordsModified state to $bool on $connection.
      *
-     * @param \Illuminate\Database\ConnectionInterface $connection
-     * @param bool                                     $bool
+     * @param \Illuminate\Database\Connection $connection
+     * @param bool                            $bool
+     * @deprecated Directly use Connection::setRecordModificationState().
+     * @codeCoverageIgnore
      */
-    public function setRecordsModified(ConnectionInterface $connection, bool $bool = true): void
+    public function setRecordsModified(Connection $connection, bool $bool = true): void
     {
-        /* @noinspection PhpUnhandledExceptionInspection */
-        $property = new ReflectionProperty($connection, 'recordsModified');
-        $property->setAccessible(true);
-        $property->setValue($connection, $bool);
+        $connection->setRecordModificationState($bool);
     }
 
     /** @noinspection PhpDocMissingThrowsInspection */
@@ -58,36 +57,37 @@ class StickinessManager
     /**
      * Get DB::$recordsModified state on $connection.
      *
-     * @param  \Illuminate\Database\ConnectionInterface $connection
+     * @param  \Illuminate\Database\Connection $connection
      * @return bool
+     * @deprecated Directly use Connection::hasModifiedRecords().
+     * @codeCoverageIgnore
      */
-    public function getRecordsModified(ConnectionInterface $connection): bool
+    public function getRecordsModified(Connection $connection): bool
     {
-        /* @noinspection PhpUnhandledExceptionInspection */
-        $property = new ReflectionProperty($connection, 'recordsModified');
-        $property->setAccessible(true);
-        return (bool)$property->getValue($connection);
+        return $connection->hasModifiedRecords();
     }
 
     /**
      * Set DB::$recordsModified state to false on $connection.
      *
-     * @param \Illuminate\Database\ConnectionInterface $connection
+     * @param \Illuminate\Database\Connection $connection
+     * @deprecated Directly use Connection::setRecordsModified().
+     * @codeCoverageIgnore
      */
-    public function setRecordsFresh(ConnectionInterface $connection): void
+    public function setRecordsFresh(Connection $connection): void
     {
-        $this->setRecordsModified($connection, false);
+        $connection->setRecordModificationState(false);
     }
 
     /**
      * Resolve DB::$recordsModified state via StickinessResolver on $connection.
      *
-     * @param \Illuminate\Database\ConnectionInterface $connection
+     * @param \Illuminate\Database\Connection $connection
      */
-    public function resolveRecordsModified(ConnectionInterface $connection): void
+    public function resolveRecordsModified(Connection $connection): void
     {
-        if (!$this->getRecordsModified($connection) && $this->isRecentlyModified($connection)) {
-            $this->setRecordsModified($connection);
+        if (!$connection->hasModifiedRecords() && $this->isRecentlyModified($connection)) {
+            $connection->setRecordModificationState(true);
         }
     }
 

@@ -29,6 +29,7 @@ use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Notifications\GeneralNotifi
 use Mpyw\LaravelCachedDatabaseStickiness\Tests\Stubs\Notifications\ModifiedNotification;
 use Orchestra\Testbench\TestCase;
 use ReflectionProperty;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 
 class InitializingTest extends TestCase
 {
@@ -197,16 +198,10 @@ class InitializingTest extends TestCase
 
     public function testInitializationForMailables(): void
     {
-        if (version_compare($this->app->version(), '9.x-dev', '>=')) {
-            $transport = $this->mock(\Symfony\Component\Mailer\Transport\TransportInterface::class);
-            $transport->shouldReceive('send')->times(3);
-            Mail::setSymfonyTransport($transport);
-        } else {
-            $swift = $this->mock(\Swift_Mailer::class)->makePartial();
-            $swift->shouldReceive('send')->times(3)->andReturn(1);
-            $swift->shouldReceive('getTransport->stop')->times(3);
-            Mail::setSwiftMailer($swift);
-        }
+        $transport = $this->mock(TransportInterface::class);
+        $transport->shouldReceive('send')->times(3);
+        assert($transport instanceof TransportInterface);
+        Mail::setSymfonyTransport($transport);
 
         DB::connection();
 

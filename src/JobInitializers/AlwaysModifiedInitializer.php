@@ -44,15 +44,10 @@ class AlwaysModifiedInitializer implements JobInitializerInterface
      */
     public function initializeOnResolvedConnections(JobProcessing $event): void
     {
-        if ($this->shouldAssumeFresh($event->job)) {
-            foreach ($this->db->getConnections() as $connection) {
-                $this->stickiness->setRecordsFresh($connection);
-            }
-            return;
-        }
+        $state = !($this->shouldAssumeFresh($event->job) ?? false);
 
         foreach ($this->db->getConnections() as $connection) {
-            $this->stickiness->setRecordsModified($connection);
+            $connection->setRecordModificationState($state);
         }
     }
 
@@ -61,8 +56,8 @@ class AlwaysModifiedInitializer implements JobInitializerInterface
      */
     public function initializeOnNewConnection(JobProcessing $jobProcessingEvent, ConnectionCreated $connectionCreatedEvent): void
     {
-        $this->shouldAssumeFresh($jobProcessingEvent->job)
-            ? $this->stickiness->setRecordsFresh($connectionCreatedEvent->connection)
-            : $this->stickiness->setRecordsModified($connectionCreatedEvent->connection);
+        $connectionCreatedEvent->connection->setRecordModificationState(
+            !($this->shouldAssumeFresh($jobProcessingEvent->job) ?? false),
+        );
     }
 }
