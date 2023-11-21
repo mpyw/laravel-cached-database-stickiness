@@ -13,7 +13,8 @@ Guarantee database stickiness over the same user's consecutive requests.
 composer require mpyw/laravel-cached-database-stickiness
 ```
 
-The default implementation is provided by `ConnectionServiceProvider`, however, **package discovery is not available**.
+> [!IMPORTANT]
+> The default implementation is provided by `ConnectionServiceProvider`, however, **package discovery is not available**.
 Be careful that you MUST register it in **`config/app.php`** by yourself.
 
 ```php
@@ -75,8 +76,9 @@ This library provides the following features.
 
 ### Customize Stickiness TTL
 
-The default stickiness TTL is `5` seconds.
-You can configure this value to add **`stickiness_ttl`** directive to your `config/database.php`.
+> [!NOTE]
+> The default stickiness TTL is `5` seconds.  
+> You can configure this value to add **`stickiness_ttl`** directive to your `config/database.php`.
 
 ```php
 <?php
@@ -131,10 +133,10 @@ return [
 
 ### Customize Connection Implementation
 
-You can configure Connection implementation.
-
-- Make sure `ConnectionServiceProvider` to be removed from `config/app.php`.
-- Extend Connection with `DispatchesConnectionEvents` trait by yourself.
+> [!TIP]
+> You can configure Connection implementation.
+> - Make sure `ConnectionServiceProvider` to be removed from `config/app.php`.
+> - Extend Connection with `DispatchesConnectionEvents` trait by yourself.
 
 ```php
 <?php
@@ -172,7 +174,8 @@ class MySqlConnection extends BaseMySqlConnection
 
 ### Customize Stickiness Source
 
-You can register the `StickinessResolverInterface` implementation to change the source for stickiness determination.
+> [!TIP]
+> You can register the `StickinessResolverInterface` implementation to change the source for stickiness determination.
 
 ```php
 <?php
@@ -197,7 +200,8 @@ class DatabaseServiceProvider extends ServiceProvider
 | `IpBasedResolver`<br>**(Default)**| Remote IP address | |
 | `AuthBasedResolver` | Authenticated User ID | Required |
 
-You must add **`ResolveStickinessOnResolvedConnections`** middleware after `Authenticate`
+> [!IMPORTANT]
+> You must add **`ResolveStickinessOnResolvedConnections`** middleware after `Authenticate`
 when you use `AuthBasedResolver`.
 
 ```diff
@@ -271,7 +275,8 @@ when you use `AuthBasedResolver`.
 
 ### Customize Worker Behavior
 
-You can register the `JobInitializerInterface` implementation to change workers' behavior.
+> [!TIP]
+> You can register the `JobInitializerInterface` implementation to change workers' behavior.
 
 ```php
 <?php
@@ -298,7 +303,8 @@ class DatabaseServiceProvider extends ServiceProvider
 
 ## Attention
 
-### Don't call `Schema::defaultStringLength()` in `ServiceProvider::boot()`
+> [!CAUTION]
+> ### Don't call `Schema::defaultStringLength()` in `ServiceProvider::boot()`
 
 #### Problem
 
