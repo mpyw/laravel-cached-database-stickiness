@@ -9,7 +9,16 @@
             "email": "ryosuke_i_628@yahoo.co.jp"
         }
     ],
-    "keywords": ["laravel", "illuminate", "database", "sticky", "stickiness", "request", "read", "write"],
+    "keywords": [
+        "laravel",
+        "illuminate",
+        "database",
+        "sticky",
+        "stickiness",
+        "request",
+        "read",
+        "write"
+    ],
     "autoload": {
         "psr-4": {
             "Mpyw\\LaravelCachedDatabaseStickiness\\": "src/"
@@ -23,11 +32,11 @@
     "require": {
         "php": "^8.0",
         "ext-pdo": "*",
-        "illuminate/container": "^9.0 || ^10.0 || ^11.0",
-        "illuminate/contracts": "^9.0 || ^10.0 || ^11.0",
-        "illuminate/database": "^9.0 || ^10.0 || ^11.0",
-        "illuminate/queue": "^9.0 || ^10.0 || ^11.0",
-        "illuminate/support": "^9.0 || ^10.0 || ^11.0"
+        "illuminate/container": "^9.0 || ^10.0 || ^11.0 || ^12.0",
+        "illuminate/contracts": "^9.0 || ^10.0 || ^11.0 || ^12.0",
+        "illuminate/database": "^9.0 || ^10.0 || ^11.0 || ^12.0",
+        "illuminate/queue": "^9.0 || ^10.0 || ^11.0 || ^12.0",
+        "illuminate/support": "^9.0 || ^10.0 || ^11.0 || ^12.0"
     },
     "require-dev": {
         "orchestra/testbench": "*",
