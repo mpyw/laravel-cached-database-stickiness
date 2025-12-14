@@ -130,8 +130,13 @@ class StickinessManagerTest extends TestCase
             ->with(JobInitializerInterface::class)
             ->andReturn($this->job);
 
-        // Mock the DatabaseManager to return empty connections
-        $this->db->shouldReceive('getConnections')->andReturn([]);
+        // Create a mock connection to cover the foreach loop
+        $connection = Mockery::mock(Connection::class);
+        $connection->shouldReceive('getName')->andReturn('mysql');
+        $connection->shouldReceive('hasModifiedRecords')->andReturn(false);
+
+        // Mock the DatabaseManager to return the mock connection
+        $this->db->shouldReceive('getConnections')->andReturn(['mysql' => $connection]);
 
         // Mock the JobInitializerInterface to accept the initializeOnResolvedConnections call
         $this->job->shouldReceive('initializeOnResolvedConnections')->once();
