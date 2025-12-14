@@ -42,7 +42,7 @@ class StickinessManagerTest extends TestCase
     /**
      * Prevent package auto-discovery to allow overload mocking.
      */
-    protected function ignorePackageDiscoveriesFrom(): array
+    public function ignorePackageDiscoveriesFrom(): array
     {
         return ['mpyw/laravel-cached-database-stickiness'];
     }
