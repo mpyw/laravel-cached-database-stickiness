@@ -134,8 +134,11 @@ class StickinessManagerTest extends TestCase
         $connection = Mockery::mock(Connection::class);
         $connection->shouldReceive('getName')->andReturn('mysql');
         $connection->shouldReceive('hasModifiedRecords')->andReturn(false);
+        // __destruct() will call setRecordModificationState() to restore state
+        $connection->shouldReceive('setRecordModificationState')->with(false)->once();
 
         // Mock the DatabaseManager to return the mock connection
+        // Called twice: once in initializeOnResolvedConnections(), once in __destruct()
         $this->db->shouldReceive('getConnections')->andReturn(['mysql' => $connection]);
 
         // Mock the JobInitializerInterface to accept the initializeOnResolvedConnections call
