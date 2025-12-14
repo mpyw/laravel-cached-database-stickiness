@@ -39,6 +39,14 @@ class StickinessManagerTest extends TestCase
      */
     protected $db;
 
+    /**
+     * Prevent package auto-discovery to allow overload mocking.
+     */
+    public function ignorePackageDiscoveriesFrom(): array
+    {
+        return ['mpyw/laravel-cached-database-stickiness'];
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -115,10 +123,6 @@ class StickinessManagerTest extends TestCase
         $this->assertTrue($manager->isRecentlyModified($connection));
     }
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
     public function testStartInitializingJob(): void
     {
         $this->container->shouldReceive('make')
@@ -126,12 +130,25 @@ class StickinessManagerTest extends TestCase
             ->with(JobInitializerInterface::class)
             ->andReturn($this->job);
 
-        $initialization = Mockery::mock('overload:' . ApplyingJobInitialization::class);
-        $initialization->shouldReceive('initializeOnResolvedConnections')->once()->andReturnSelf();
+        // Create a mock connection to cover the foreach loop
+        $connection = Mockery::mock(Connection::class);
+        $connection->shouldReceive('getName')->andReturn('mysql');
+        $connection->shouldReceive('hasModifiedRecords')->andReturn(false);
+        // __destruct() will call setRecordModificationState() to restore state
+        $connection->shouldReceive('setRecordModificationState')->with(false)->once();
+
+        // Mock the DatabaseManager to return the mock connection
+        // Called twice: once in initializeOnResolvedConnections(), once in __destruct()
+        $this->db->shouldReceive('getConnections')->andReturn(['mysql' => $connection]);
+
+        // Mock the JobInitializerInterface to accept the initializeOnResolvedConnections call
+        $this->job->shouldReceive('initializeOnResolvedConnections')->once();
 
         $event = Mockery::mock(JobProcessing::class);
 
         $manager = new StickinessManager($this->container, $this->db);
-        $this->assertInstanceOf(ApplyingJobInitialization::class, $manager->startInitializingJob($event));
+        $result = $manager->startInitializingJob($event);
+
+        $this->assertInstanceOf(ApplyingJobInitialization::class, $result);
     }
 }
