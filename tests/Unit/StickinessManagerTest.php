@@ -123,10 +123,6 @@ class StickinessManagerTest extends TestCase
         $this->assertTrue($manager->isRecentlyModified($connection));
     }
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
     public function testStartInitializingJob(): void
     {
         $this->container->shouldReceive('make')
@@ -134,12 +130,17 @@ class StickinessManagerTest extends TestCase
             ->with(JobInitializerInterface::class)
             ->andReturn($this->job);
 
-        $initialization = Mockery::mock('overload:' . ApplyingJobInitialization::class);
-        $initialization->shouldReceive('initializeOnResolvedConnections')->once()->andReturnSelf();
+        // Mock the DatabaseManager to return empty connections
+        $this->db->shouldReceive('getConnections')->andReturn([]);
+
+        // Mock the JobInitializerInterface to accept the initializeOnResolvedConnections call
+        $this->job->shouldReceive('initializeOnResolvedConnections')->once();
 
         $event = Mockery::mock(JobProcessing::class);
 
         $manager = new StickinessManager($this->container, $this->db);
-        $this->assertInstanceOf(ApplyingJobInitialization::class, $manager->startInitializingJob($event));
+        $result = $manager->startInitializingJob($event);
+
+        $this->assertInstanceOf(ApplyingJobInitialization::class, $result);
     }
 }
