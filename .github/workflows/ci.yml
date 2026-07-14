@@ -19,7 +19,7 @@ jobs:
               laravel: ^13.0.x-dev
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
